@@ -1,0 +1,23 @@
+# repo hygiene
+node_modules/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# local state and scratch space
+.tmp/
+.tmp-*
+state/
+*.local
+
+# editor / OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# test output
+coverage/
+test-results/
