@@ -1,0 +1,10 @@
+# dsh-expert-council bundle layer.
+#
+# One Host plugin row. The Host half owns the expert roster, the team presets,
+# the collaboration protocol, the consult ledger, the `expert_council` tool,
+# the `/experts` command, and the loopback panel route. The Client half
+# (declared through `dsh.client`) renders the convening panel and calls the
+# same Host service through that route.
+- insert:
+    - id: dsh-expert-council
+      name: dsh-expert-council

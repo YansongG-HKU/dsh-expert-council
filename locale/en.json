@@ -1,0 +1,8 @@
+{
+  "name": "Expert Council",
+  "description": "Disciplined expert panels: explicit lenses, evidence gates, cross-examination, recorded dissent, token budgets and a decision ledger.",
+  "panel": {
+    "title": "Expert Council",
+    "subtitle": "One question, a panel with a protocol"
+  }
+}
