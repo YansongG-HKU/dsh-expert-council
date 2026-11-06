@@ -1,14 +1,30 @@
 # Expert Council · dsh-expert-council
 
-> One sentence, a panel of professionals, and a decision you can audit. Not "several chatbots" and not one model role-playing five experts: the Host issues **one independent model call per expert**, cross-examines only proven disagreements, and a chair writes the verdict into a durable report.
+> One sentence, a panel of professionals, and a result you can use and audit. Review mode gives you a verdict with recorded dissent; task mode makes every expert ship a complete artifact and merges them into one final deliverable. No task boundaries: any subject, any output.
 
-A plugin for [DeepSeek Harness](https://github.com/YansongG-HKU). The Host owns the expert roster, six professional domain packs, the user's customisation layer, the protocol, the real-run executor, token accounting and the consult ledger; the Client renders the sidebar panel; the model gets one tool (`expert_council`), the human gets one command (`/experts`). All three write the same ledger.
+A plugin for [DeepSeek Harness](https://github.com/YansongG-HKU). The Host owns the expert roster, six professional lens baselines, the user's customisation layer, the protocol, the real-run executor, token accounting and the consult ledger; the Client renders the sidebar panel; the model gets one tool (`expert_council`), the human gets one command (`/experts`). All three write the same ledger.
 
 **Three hard rules**
 
 1. **User-gated only**: the model cannot convene or run a panel by itself. `/experts` and the panel are user actions; a model-initiated `convene`/`run` must carry `explicit_request:true` + `request_quote` (your own words) and is recorded as consent.
 2. **Editable**: experts and team compositions can be changed any time — including in plain language, without knowing the fields.
 3. **Isolated**: not the built-in DSH Agent Teams. It never spawns teammates, never calls `spawn_teammate` / `team_task_*`, and its "teams" are expert lenses plus a protocol.
+
+## No task boundaries, two intents
+
+The panel has no task boundaries: review a decision or produce anything — code, plans, copy, scripts, design, attack surfaces, financial models, experiments, business plans. Experts may work outside their lens/domain; cross-domain, sensitive or unusual work is never discounted or refused.
+
+- **review** — independent opinions → cross-exam only on proven disagreement → chair verdict with dissent, unresolved questions and reversal triggers.
+- **task** — every expert ships a complete usable artifact in parallel → the integrator merges one final deliverable (not a summary). A failed merge falls back to concatenating artifacts and is marked for human review.
+
+```text
+/experts run finance <decision>        # review
+/experts task engineering <task>       # task mode
+# panel: pick domain/team → 评审会诊 / 任务会诊 → run
+# tool: expert_council({action:'run', domain:'security', intent:'task', question:'…'})
+```
+
+Domain packs (finance/legal/healthcare/engineering/research/security) are **lens baselines**, not task boundaries; any team/domain can take any task.
 
 ## Why it is not just pretty UI
 
@@ -23,6 +39,8 @@ A plugin for [DeepSeek Harness](https://github.com/YansongG-HKU). The Host owns 
 | Robustness | Per-call timeout, retry, JSON contract and one repair retry; a truncated chair reply is salvaged from its own fields, then a statistical "degraded verdict" is used and explicitly marked for human review; reasoning-only empty replies automatically retry with a bigger output budget |
 | Observability | Stage timeline (independent → cross-exam → peer review → verdict), per-expert status/latency/tokens, quorum, failed experts, over-budget and degradation warnings; `run_status` polling and `cancel_run` |
 | Report | 8-section Markdown report saved as `runs/<runId>.md` (decision, expert table, disagreements, dissent, unresolved/reversal, actions, domain artifact checklist, run detail); readable via `action=report`, the panel, or `GET /expert-council/api/report?id=` |
+| Task mode | `intent=task`: every expert ships a complete artifact, the integrator merges one final deliverable; report contains the final result, division of labor, per-expert artifacts, assumptions, risks and next steps |
+| No task boundaries | Any subject, any output; experts may cross lenses/domains without being discounted, refused or shrunk; evidence is a review tool, not a gate on creation/execution |
 | Decision ledger | Consults persist rounds, opinions, disagreements, verdict and run summary (`expertStatuses`, `reportAvailable`); a verdict can never be overwritten |
 | Three entry points, one service | Tool, command and panel call the same `service` — one gate implementation, no drift |
 
@@ -94,7 +112,7 @@ After enabling: 「专家团」 appears in the sidebar, `/experts` is available,
 
 ```bash
 node --check index.js
-node --test "test/*.test.mjs"   # 58/58
+node --test "test/*.test.mjs"   # 62/62
 ```
 
 `test/run.test.mjs` covers the real orchestration with a scripted fake LLM: parallel independence, JSON repair, quorum, cancellation, forced-dissent repair, lean mode, report persistence, tool wiring, domain metadata, empty-output retry, truncated-chair salvage, degraded verdict and domain persistence.
@@ -108,7 +126,9 @@ node --test "test/*.test.mjs"   # 58/58
 
 ## Version
 
-- `0.4.0`: real panel execution, 6 professional domain packs, durable reports, run progress/cancel/degradation, reasoning-model adaptation.
+- `0.5.0`: task mode (parallel artifacts + merged deliverable), no task boundaries, lens baselines, task report.
+- `0.4.0`: real panel execution, 6 professional lens baselines, durable reports, run progress/cancel/degradation, reasoning-model adaptation.
 - `0.3.0`: plain-language customisation, editable experts/teams.
 - `0.2.0`: explicit-use consent, customisation, isolation boundary.
 - `0.1.0`: first release (14 lenses, 8 teams, 7 rules, three budgets, three entry points, decision ledger).
+

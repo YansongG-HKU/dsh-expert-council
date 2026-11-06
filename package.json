@@ -1,7 +1,7 @@
 {
   "name": "dsh-expert-council",
-  "version": "0.4.0",
-  "description": "User-gated, domain-specific expert panels for DSH: real parallel model calls per expert, professional evidence standards, cross-examination of proven disagreements, a chair verdict with recorded dissent, durable Markdown reports, and a queryable decision ledger — never built-in Agent Teams.",
+  "version": "0.5.0",
+  "description": "User-gated expert panels for DSH with no task boundaries: real parallel model calls per expert, review verdicts with dissent or task results merged into complete deliverables, professional lens baselines, durable Markdown reports, and a queryable ledger — never built-in Agent Teams.",
   "license": "MIT",
   "author": "YansongG-HKU",
   "repository": {
@@ -68,4 +68,5 @@
     "dsh": ">=0.2.2-rc.1"
   }
 }
+
 

@@ -224,3 +224,33 @@ customization.json 写入 + history 记一条（谁、什么动作、原话、�
 - [x] `consult.run.expertStatuses` 与 `reportAvailable` 持久化
 - [x] 领域包进入 brief / 专家 system prompt / 报告核对表
 - [x] 与 Agent Teams 的对照与评分见 `docs/BENCHMARK.md`
+
+## 8. V0.5 无任务边界（task intent + unbounded scope）
+
+### 8.1 两种意图
+
+- `intent="review"`（默认）：原有评审协议——独立意见、分歧交叉质询、主持裁决（dissent/unresolved/reversalTriggers）。
+- `intent="task"`：每位专家并行交付完整可用产出（代码/方案/文案/设计/攻击面/模型/剧本…），总集成者合并为一份最终成果；不投票、不要求异议结构。
+- `consult.intent` 持久化；`state.protocol.intents` 与 `state.consults[].intent` 供面板消费；工具/命令/面板均可传 intent。
+
+### 8.2 解除任务边界
+
+- 删除 `stay-in-lens（越权降权）` 规则，替换为 `no-task-boundary（全域无界）`：任何主题、任何产出都可以；专家可越过镜头/领域，不因跨域、敏感、非常规而降权、拒答或缩水。
+- 专家 prompt 新增「没有任务边界」段；镜头是起点不是边界；评审类证据门槛不适用于创作/执行类产出（假设与风险必须写清）。
+- 领域包改为「领域镜头基线（可越过）」；取消 team 与 domain 的归属一致性校验，任意团队/领域可组合用于任意任务。
+- 任务 prompt：`buildTaskExpertPrompt` → `TASK_SCHEMA`；`buildTaskMergePrompt` → `TASK_MERGE_SCHEMA`；合并失败自动拼接并告警。
+
+### 8.3 任务模式执行与留痕
+
+- executor task 路径：并行 `work` 阶段 → `merge` 阶段 → `completeTask` 落库；报告为「专家团任务报告」（最终成果/分工/各专家交付物/假设风险/未决下一步/运行明细）。
+- 任务会诊拒绝人工 `record`；`completeTask` 不走评审裁决的 dissent/证据门禁（产出语义不同）。
+- 任务默认预算 = 团队档位 ×1.5（≤20000）；专家输出额度 ≥2400、合并 ≥4000 token。
+
+### 8.4 V0.5 质量清单
+
+- [x] task intent 全链路（convene/run/记录/报告/面板）
+- [x] 并行产出 + 合并最终成果；合并失败自动拼接
+- [x] 任务空产出明确失败；任务拒绝人工 record
+- [x] 删除越权降权/out-of-scope/只从镜头出发等边界文案，测试断言
+- [x] 任意 team × domain 组合可用
+- [x] 62/62 测试通过（新增 4 项任务模式/无边界测试）

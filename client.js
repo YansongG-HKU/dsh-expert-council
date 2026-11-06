@@ -196,6 +196,29 @@ window.__ModuleLoader__.load({
         teamsDesc: '固定镜头组合；先从模板开会，再按需自建或覆盖。',
         consultsDesc: '会诊与裁决都留档；点开可核对异议与推翻条件。',
         selectedLabel: '已选',
+        lensBaseline: '镜头基线，可越过，不限制任务',
+        intentLabel: '会诊类型',
+        intentReview: '评审会诊',
+        intentTask: '任务会诊',
+        intentReviewWhen: '要一个判断、裁决或风险意见',
+        intentTaskWhen: '要一个能直接用的产出：方案、代码、文案、设计、攻击面、计划、故事…',
+        intentReviewDesc: '专家各自成稿 → 只对分歧交叉质询 → 主持给出可追溯的裁决。',
+        intentTaskDesc: '专家各自交付产出 → 主持合并成一份完整成果；不设任务边界、不因主题或领域受限。',
+        taskBudgetHint: '任务会诊预算由 Host 自动 ×1.5',
+        taskResultTitle: '任务成果',
+        taskNoResult: '还没有任务成果；先点「真实会诊」执行任务。',
+        taskSummary: '摘要',
+        taskNextActions: '下一步',
+        taskDeliverables: '交付物清单',
+        taskDeliverablesEmpty: '没有登记交付物',
+        taskNoReview: '任务会诊只交付成果，不套用评审区块；完整成果见报告。',
+        taskReportTitle: '完整成果报告',
+        taskReportView: '查看完整成果',
+        taskReportNote: '完整成果正文在报告 Markdown 里；点「查看完整成果」或下载。',
+        taskMarker: '任务成果',
+        taskPendingShort: '未产出',
+        stageWork: '独立交付',
+        stageMerge: '合并成果',
         runtimeWarning: '未选择默认模型，真实会诊不可用',
         domainsTitle: '专业领域',
         domainsDesc: '选一个领域：每个领域有 5 位专家镜头、证据等级与交付物，写清要决定的事即可立案。',
@@ -208,10 +231,11 @@ window.__ModuleLoader__.load({
         launchConvene: '立案',
         launchRun: '真实会诊',
         launchRunUnavailable: '未选择默认模型，真实会诊不可用',
-        launchHint: '立案只创建会诊与简报；真实会诊会立即调用模型并写回意见与裁决。',
+        launchHint: '立案只创建会诊与简报；真实会诊会立即执行：评审出裁决，任务出完整成果。',
         launchError: '发起失败：{message}',
         runTitle: '真实会诊',
         runIdleHint: '还没有真实会诊；点「真实会诊」让模型并行给出意见。',
+        taskRunIdleHint: '还没有真实会诊；点「真实会诊」让专家交付并合并成果。',
         stageTitle: '阶段',
         stageIndependent: '独立成稿',
         stageCross: '交叉质询',
@@ -234,6 +258,7 @@ window.__ModuleLoader__.load({
         runErrorLabel: '失败原因',
         runExpertsTitle: '专家状态',
         runExpertEmpty: '还没有专家结果',
+        runExpertsSummary: '{count} 次专家调用（逐条明细见报告）',
         runExpertOk: '成功',
         runExpertDegraded: '降级',
         runExpertFailed: '失败',
@@ -255,9 +280,9 @@ window.__ModuleLoader__.load({
         artifactDelivered: '已产出',
         artifactNotes: '交付说明',
         emptyGuideTitle: '还没有会诊',
-        emptyGuideHint: '选一个领域 → 写清要决定的事 → 真实会诊',
-        emptyGuideStep1: '选一个专业领域',
-        emptyGuideStep2: '写清要决定的事',
+        emptyGuideHint: '选一个团队/领域 → 写清要评审还是直接产出 → 真实会诊',
+        emptyGuideStep1: '选一个团队/领域',
+        emptyGuideStep2: '写清要评审还是直接产出',
         emptyGuideStep3: '点「真实会诊」让专家团开始',
         expertDomainLabel: '所属领域（可选）',
         expertDomainNone: '不指定',
@@ -472,6 +497,29 @@ window.__ModuleLoader__.load({
         teamsDesc: 'Fixed lens combinations; start from a template, then create or override your own.',
         consultsDesc: 'Consults and verdicts stay on record; open one to review dissent and reversal triggers.',
         selectedLabel: 'Selected',
+        lensBaseline: 'Lens baseline only — cross it freely; it never limits the task',
+        intentLabel: 'Consult type',
+        intentReview: 'Review',
+        intentTask: 'Task',
+        intentReviewWhen: 'You want a judgment, verdict or risk opinion',
+        intentTaskWhen: 'You want a usable artifact: plan, code, copy, design, attack surface, schedule, story…',
+        intentReviewDesc: 'Experts write independently → cross-examine only disagreements → the chair gives a traceable verdict.',
+        intentTaskDesc: 'Experts each deliver an artifact → the chair merges them into one complete result; no task boundaries and no topic/domain limits.',
+        taskBudgetHint: 'Task consults automatically get a 1.5× budget from the Host',
+        taskResultTitle: 'Task result',
+        taskNoResult: 'No task result yet; click Run for real to execute the task.',
+        taskSummary: 'Summary',
+        taskNextActions: 'Next steps',
+        taskDeliverables: 'Deliverables',
+        taskDeliverablesEmpty: 'No deliverables recorded',
+        taskNoReview: 'Task consults deliver a result instead of review blocks; open the report for the full result.',
+        taskReportTitle: 'Full result report',
+        taskReportView: 'View full result',
+        taskReportNote: 'The full result lives in the report Markdown; view or download it here.',
+        taskMarker: 'Task result',
+        taskPendingShort: 'No result yet',
+        stageWork: 'Independent delivery',
+        stageMerge: 'Merge result',
         runtimeWarning: 'No default model is selected, so real consults are unavailable',
         domainsTitle: 'Professional domains',
         domainsDesc: 'Pick a field: each ships five expert lenses, an evidence ladder and deliverables. State the decision to file a consult.',
@@ -484,10 +532,11 @@ window.__ModuleLoader__.load({
         launchConvene: 'File consult',
         launchRun: 'Run for real',
         launchRunUnavailable: 'Real consults need a default model (unavailable)',
-        launchHint: 'Filing only creates the consult and brief; a real run calls the models immediately and writes opinions and a verdict.',
+        launchHint: 'Filing only creates the consult and brief; a real run executes immediately: review produces a verdict, task produces a complete result.',
         launchError: 'Launch failed: {message}',
         runTitle: 'Real run',
         runIdleHint: 'No real run yet; click Run for real to have the models produce opinions.',
+        taskRunIdleHint: 'No real run yet; click Run for real to have the experts deliver and merge the result.',
         stageTitle: 'Stages',
         stageIndependent: 'Independent',
         stageCross: 'Cross-examination',
@@ -510,6 +559,7 @@ window.__ModuleLoader__.load({
         runErrorLabel: 'Error',
         runExpertsTitle: 'Expert status',
         runExpertEmpty: 'No expert results yet',
+        runExpertsSummary: '{count} expert calls (details in the report)',
         runExpertOk: 'OK',
         runExpertDegraded: 'Degraded',
         runExpertFailed: 'Failed',
@@ -531,9 +581,9 @@ window.__ModuleLoader__.load({
         artifactDelivered: 'Delivered',
         artifactNotes: 'Artifact notes',
         emptyGuideTitle: 'No consults yet',
-        emptyGuideHint: 'Pick a domain → state the decision → run for real',
-        emptyGuideStep1: 'Pick a professional domain',
-        emptyGuideStep2: 'State the decision clearly',
+        emptyGuideHint: 'Pick a team/domain → say whether you want a review or a direct deliverable → run for real',
+        emptyGuideStep1: 'Pick a team or domain',
+        emptyGuideStep2: 'Say whether you want a review or a direct deliverable',
         emptyGuideStep3: 'Click Run for real to start the panel',
         expertDomainLabel: 'Domain (optional)',
         expertDomainNone: 'Not assigned',
@@ -833,6 +883,7 @@ window.__ModuleLoader__.load({
 .ec-notice-warn { border-left-color: var(--ec-amber); }
 .ec-domains { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
 .ec-domain { display: flex; flex-direction: column; gap: 8px; padding: 13px; border: 0.5px solid var(--ec-line-2); border-radius: 12px; background: var(--ec-surface); text-align: left; color: inherit; font: inherit; cursor: pointer; }
+.ec-card-note { margin: 0; font-size: 10.5px; line-height: 15px; color: var(--ec-ink-4); border-left: 2px solid var(--ec-line-2); padding-left: 6px; }
 .ec-domain:hover { border-color: var(--ec-line-3); }
 .ec-domain:focus-visible { outline: 2px solid var(--ec-accent); outline-offset: 2px; }
 .ec-domain-on { border-color: var(--ec-accent); box-shadow: inset 0 0 0 1px var(--ec-accent); }
@@ -852,6 +903,18 @@ window.__ModuleLoader__.load({
 .ec-launch-title { margin: 0; font-size: 12.5px; line-height: 18px; font-weight: 600; color: var(--ec-ink-2); }
 .ec-launch-row { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 10px 12px; align-items: start; }
 .ec-launch-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ec-launch-intent { display: flex; flex-direction: column; gap: 6px; }
+.ec-intent-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.ec-intent-option { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; padding: 7px 10px; border: 0.5px solid var(--ec-line-2); border-radius: 9px; background: var(--ec-surface); color: var(--ec-ink-3); font: inherit; cursor: pointer; text-align: left; }
+.ec-intent-option:hover { border-color: var(--ec-line-3); }
+.ec-intent-option:focus-visible { outline: 2px solid var(--ec-accent); outline-offset: 2px; }
+.ec-intent-option-on { border-color: var(--ec-accent); color: var(--ec-ink); box-shadow: inset 0 0 0 1px var(--ec-accent); }
+.ec-intent-option-label { font-size: 12px; line-height: 17px; font-weight: 600; }
+.ec-intent-option-when { font-size: 10.5px; line-height: 15px; color: var(--ec-ink-4); }
+.ec-task-result { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 0.5px solid var(--ec-line-2); border-left: 3px solid var(--ec-accent); border-radius: 0 10px 10px 0; background: var(--ec-surface); }
+.ec-task-title { margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; color: var(--ec-ink); overflow-wrap: anywhere; }
+.ec-report-cta { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 0.5px dashed var(--ec-line-3); border-radius: 9px; }
+.ec-consult-taskmark { color: var(--ec-accent); border-color: var(--ec-accent); }
 .ec-run { display: flex; flex-direction: column; gap: 8px; }
 .ec-run-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; line-height: 17px; color: var(--ec-ink-3); }
 .ec-run-meta .ec-mono { color: var(--ec-ink-2); }
@@ -886,6 +949,8 @@ window.__ModuleLoader__.load({
   .ec-expert-status-row { grid-template-columns: minmax(0, 1fr) auto; }
   .ec-expert-status-row .ec-expert-status-meta:last-child { grid-column: 2; }
   .ec-modal-backdrop { padding: 10px; }
+  .ec-intent-options { flex-direction: column; }
+  .ec-intent-option { width: 100%; }
 }
 @media (max-width: 720px) {
   .ec-history-row { grid-template-columns: minmax(0, 1fr) auto; }
@@ -1362,6 +1427,42 @@ window.__ModuleLoader__.load({
     }
 
     /* ------------------------------------------------------------------ */
+    /* Intent vocabulary: a review judges, a task delivers an artifact.     */
+    /* ------------------------------------------------------------------ */
+
+    const INTENT_IDS = ['review', 'task']
+
+    function intentLabel(t, intent) {
+      return intent === 'task' ? t('intentTask') : t('intentReview')
+    }
+
+    function IntentChip(props) {
+      const task = props.intent === 'task'
+      return h(Chip, { dot: false, tone: task ? 'info' : 'muted', label: intentLabel(props.t, props.intent) })
+    }
+
+    /** Host-provided intent order, localised through the panel dictionaries. */
+    function intentOptions(t, protocol) {
+      const raw = protocol && Array.isArray(protocol.intents) ? protocol.intents : []
+      const ids = raw
+        .map((item) => (item && nonEmpty(item.id) ? item.id : ''))
+        .filter((id) => INTENT_IDS.includes(id))
+      const ordered = ids.length > 0 ? [...new Set(ids)] : INTENT_IDS
+      return ordered.map((id) => ({
+        id,
+        label: intentLabel(t, id),
+        when: id === 'task' ? t('intentTaskWhen') : t('intentReviewWhen'),
+        description: id === 'task' ? t('intentTaskDesc') : t('intentReviewDesc'),
+      }))
+    }
+
+    function defaultIntent(protocol) {
+      const value =
+        protocol && protocol.defaults && typeof protocol.defaults === 'object' ? protocol.defaults.intent : null
+      return INTENT_IDS.includes(value) ? value : 'review'
+    }
+
+    /* ------------------------------------------------------------------ */
     /* Real-run vocabulary: statuses, expert states and the stage ladder.   */
     /* ------------------------------------------------------------------ */
 
@@ -1382,6 +1483,11 @@ window.__ModuleLoader__.load({
     const EXPERT_STATUS_TONES = { ok: 'installed', degraded: 'waiting', failed: 'blocked', running: 'info' }
 
     const RUN_STAGE_KEYS = ['stageIndependent', 'stageCross', 'stagePeer', 'stageVerdict']
+    const TASK_STAGE_KEYS = ['stageWork', 'stageMerge']
+
+    function stageKeysFor(intent) {
+      return intent === 'task' ? TASK_STAGE_KEYS : RUN_STAGE_KEYS
+    }
 
     function RunStatusChip(props) {
       const tone = RUN_STATUS_TONES[props.status] || 'muted'
@@ -1393,8 +1499,21 @@ window.__ModuleLoader__.load({
       return h(Chip, { dot: false, tone, label: dictLabel(props.t, EXPERT_STATUS_KEYS, props.status, 'unknown') })
     }
 
-    /** Map the executor stage string onto the four user-facing stages. */
-    function stageIndexOf(stage) {
+    /** Map the executor stage string onto the ladder of one intent. */
+    function stageIndexOf(stage, intent) {
+      if (intent === 'task') {
+        switch (stage) {
+          case 'work':
+            return 0
+          case 'merge':
+            return 1
+          case 'report':
+          case 'finished':
+            return 2
+          default:
+            return -1
+        }
+      }
       switch (stage) {
         case 'independent':
         case 'independent-done':
@@ -1416,13 +1535,14 @@ window.__ModuleLoader__.load({
       }
     }
 
-    function stageStateOf(mode, index, run) {
-      if (index === 2 && mode !== 'deep') return 'skip'
+    function stageStateOf(mode, intent, index, run) {
+      const total = stageKeysFor(intent).length
+      if (intent !== 'task' && index === 2 && mode !== 'deep') return 'skip'
       if (!run) return 'pending'
       if (run.status === 'finished') return 'done'
-      const current = stageIndexOf(run.stage)
+      const current = stageIndexOf(run.stage, intent)
       if (run.status === 'running') {
-        if (index < current || current >= 4) return 'done'
+        if (index < current || current >= total) return 'done'
         if (index === current) return 'active'
         return 'pending'
       }
@@ -1783,6 +1903,7 @@ window.__ModuleLoader__.load({
           selected ? h(Chip, { tone: 'info', label: t('selectedLabel') }) : null,
         ),
         nonEmpty(domain.tagline) ? h('p', { className: 'ec-domain-tagline' }, domain.tagline) : null,
+        h('p', { className: 'ec-card-note' }, t('lensBaseline')),
         experts.length > 0
           ? h(
               'div',
@@ -1853,10 +1974,13 @@ window.__ModuleLoader__.load({
       const domain = props.domain
       const [question, setQuestion] = React.useState('')
       const [mode, setMode] = React.useState(domain && MODE_VALUES.includes(domain.defaultMode) ? domain.defaultMode : 'standard')
+      const [intent, setIntent] = React.useState(defaultIntent(props.protocol))
       const [pending, setPending] = React.useState(null)
       const [error, setError] = React.useState(null)
       const busyRef = React.useRef(false)
       const questionMin = finite(props.questionMin) ? Math.max(1, Math.trunc(props.questionMin)) : QUESTION_MIN
+      const intentChoices = intentOptions(t, props.protocol)
+      const activeIntent = intentChoices.find((option) => option.id === intent) || intentChoices[0] || null
       const estimates =
         domain && domain.team && domain.team.estimates && typeof domain.team.estimates === 'object'
           ? domain.team.estimates
@@ -1877,7 +2001,7 @@ window.__ModuleLoader__.load({
         setPending(runNow ? 'run' : 'convene')
         setError(null)
         try {
-          await props.onLaunch({ domainId: domain.id, question: text, mode, runNow })
+          await props.onLaunch({ domainId: domain.id, question: text, mode, intent, runNow })
           setQuestion('')
         } catch (failure) {
           setError(t('launchError', { message: describeError(t, failure) }))
@@ -1891,6 +2015,30 @@ window.__ModuleLoader__.load({
         'div',
         { className: 'ec-launch' },
         h('h3', { className: 'ec-launch-title' }, t('domainLaunchTitle')),
+        h(
+          'div',
+          { className: 'ec-launch-intent' },
+          h('span', { className: 'ec-label' }, t('intentLabel')),
+          h(
+            'div',
+            { className: 'ec-intent-options', role: 'group', 'aria-label': t('intentLabel') },
+            intentChoices.map((option) =>
+              h(
+                'button',
+                {
+                  key: option.id,
+                  type: 'button',
+                  className: `ec-intent-option${option.id === intent ? ' ec-intent-option-on' : ''}`,
+                  'aria-pressed': option.id === intent,
+                  onClick: () => setIntent(option.id),
+                },
+                h('span', { className: 'ec-intent-option-label' }, option.label),
+                h('span', { className: 'ec-intent-option-when' }, option.when),
+              ),
+            ),
+          ),
+          activeIntent ? h('p', { className: 'ec-hint' }, activeIntent.description) : null,
+        ),
         h(
           'div',
           { className: 'ec-launch-row' },
@@ -1928,6 +2076,7 @@ window.__ModuleLoader__.load({
               { className: 'ec-hint' },
               estimate === null ? t('unknown') : t('estimateHint', { cap: formatNumber(estimate) }),
             ),
+            intent === 'task' ? h('p', { className: 'ec-hint' }, t('taskBudgetHint')) : null,
           ),
         ),
         h('p', { className: 'ec-hint' }, t('launchHint')),
@@ -1962,6 +2111,13 @@ window.__ModuleLoader__.load({
       const run = props.run && typeof props.run === 'object' ? props.run : null
       const snapshot = props.snapshot && typeof props.snapshot === 'object' ? props.snapshot : null
       if (!run && !snapshot) return null
+      const declared = props.intent === 'task' ? 'task' : props.intent === 'review' ? 'review' : ''
+      const intent =
+        declared ||
+        (run && run.intent === 'task' ? 'task' : '') ||
+        (snapshot && snapshot.intent === 'task' ? 'task' : '') ||
+        'review'
+      const stageKeys = stageKeysFor(intent)
       const status = run && nonEmpty(run.status) ? run.status : snapshot && nonEmpty(snapshot.status) ? snapshot.status : ''
       const stage = run && nonEmpty(run.stage) ? run.stage : snapshot && nonEmpty(snapshot.stage) ? snapshot.stage : ''
       const tokens =
@@ -1974,7 +2130,7 @@ window.__ModuleLoader__.load({
       const duration = run && finite(run.durationMs) ? run.durationMs : 0
       const provider = run && nonEmpty(run.provider) ? run.provider : snapshot && nonEmpty(snapshot.provider) ? snapshot.provider : ''
       const model = run && nonEmpty(run.model) ? run.model : snapshot && nonEmpty(snapshot.model) ? snapshot.model : ''
-      const quorum = snapshot && snapshot.quorum && typeof snapshot.quorum === 'object' ? snapshot.quorum : null
+      const quorum = intent === 'task' ? null : snapshot && snapshot.quorum && typeof snapshot.quorum === 'object' ? snapshot.quorum : null
       const warnings = snapshot && Array.isArray(snapshot.warnings) ? snapshot.warnings.filter(nonEmpty).slice(0, 6) : []
       return h(
         'div',
@@ -1982,8 +2138,11 @@ window.__ModuleLoader__.load({
         h(
           'ul',
           { className: 'ec-stages', 'aria-label': t('stageTitle') },
-          RUN_STAGE_KEYS.map((key, index) => {
-            const state = stageStateOf(props.mode, index, { status, stage })
+          stageKeys.map((key, index) => {
+            const state = stageStateOf(props.mode, intent, index, {
+              status,
+              stage,
+            })
             return h(
               'li',
               { key, className: `ec-stage${stageStateClass(state)}` },
@@ -2059,7 +2218,12 @@ window.__ModuleLoader__.load({
       const t = props.t
       const lang = props.lang
       const entries = collectRunExperts(props.run, props.snapshot, props.rounds)
-      if (entries.length === 0) return h('p', { className: 'ec-empty-inline' }, t('runExpertEmpty'))
+      if (entries.length === 0) {
+        const calls = props.run && finite(props.run.experts) ? props.run.experts : 0
+        return calls > 0
+          ? h('p', { className: 'ec-empty-inline' }, t('runExpertsSummary', { count: formatNumber(calls) }))
+          : h('p', { className: 'ec-empty-inline' }, t('runExpertEmpty'))
+      }
       return h(
         'div',
         { className: 'ec-expert-table' },
@@ -2078,6 +2242,7 @@ window.__ModuleLoader__.load({
 
     function ReportModal(props) {
       const t = props.t
+      const title = nonEmpty(props.title) ? props.title : t('reportTitle')
       const closeRef = React.useRef(null)
       React.useEffect(() => {
         const node = closeRef.current
@@ -2109,13 +2274,13 @@ window.__ModuleLoader__.load({
             className: 'ec-modal',
             role: 'dialog',
             'aria-modal': 'true',
-            'aria-label': t('reportTitle'),
+            'aria-label': title,
             onClick: (event) => event.stopPropagation(),
           },
           h(
             'div',
             { className: 'ec-modal-head' },
-            h('h2', { className: 'ec-modal-title' }, t('reportTitle')),
+            h('h2', { className: 'ec-modal-title' }, title),
             h(
               'div',
               { className: 'ec-modal-actions' },
@@ -2919,6 +3084,7 @@ window.__ModuleLoader__.load({
           incomplete ? h(Chip, { tone: 'blocked', label: t('incompleteTeam') }) : null,
         ),
         nonEmpty(team.tagline) ? h('p', { className: 'ec-team-tagline' }, team.tagline) : null,
+        h('p', { className: 'ec-card-note' }, t('lensBaseline')),
         h(
           'div',
           { className: 'ec-chips' },
@@ -3141,8 +3307,10 @@ window.__ModuleLoader__.load({
               { className: 'ec-consult-list' },
               consults.slice(0, 20).map((consult) => {
                 const domain = domainFor(consult.domainId)
+                const intent = consult.intent === 'task' ? 'task' : 'review'
                 const runStatus = nonEmpty(consult.runStatus) ? consult.runStatus : null
                 const reportReady = runStatus === 'finished'
+                const taskReady = intent === 'task' && consult.status === 'verdict'
                 return h(
                   'button',
                   {
@@ -3159,6 +3327,7 @@ window.__ModuleLoader__.load({
                       'span',
                       { className: 'ec-consult-chips' },
                       domain ? h(Chip, { dot: false, label: pickName(lang, domain.name) || domain.id }) : null,
+                      h(IntentChip, { t, intent }),
                       runStatus ? h(RunStatusChip, { t, status: runStatus }) : null,
                       h('span', { className: 'ec-consult-team' }, teamNameFor(consult.teamId)),
                     ),
@@ -3166,13 +3335,20 @@ window.__ModuleLoader__.load({
                     h(
                       'span',
                       { className: 'ec-consult-decision' },
-                      nonEmpty(consult.decision) ? `${t('decisionLabel')}: ${excerpt(consult.decision, 120)}` : t('noDecision'),
+                      nonEmpty(consult.decision)
+                        ? intent === 'task'
+                          ? excerpt(consult.decision, 140)
+                          : `${t('decisionLabel')}: ${excerpt(consult.decision, 120)}`
+                        : intent === 'task'
+                          ? t('taskPendingShort')
+                          : t('noDecision'),
                     ),
                   ),
                   h(
                     'span',
                     { className: 'ec-consult-meta' },
                     `${t('roundsCount', { count: finite(consult.roundCount) ? consult.roundCount : 0 })} · ${formatNumber(consult.tokens)} ${t('tokenUnit')}`,
+                    taskReady ? h('span', { className: 'ec-consult-report ec-consult-taskmark' }, t('taskMarker')) : null,
                     reportReady ? h('span', { className: 'ec-consult-report' }, t('reportMarker')) : null,
                   ),
                   h('span', { className: 'ec-consult-time' }, timestampOf(consult.updatedAt || consult.createdAt) ? dateTimeText(timestampOf(consult.updatedAt || consult.createdAt)) : t('unknown')),
@@ -3335,6 +3511,7 @@ window.__ModuleLoader__.load({
       const [question, setQuestion] = React.useState('')
       const [context, setContext] = React.useState('')
       const [mode, setMode] = React.useState(defaultMode)
+      const [intent, setIntent] = React.useState(defaultIntent(props.protocol))
       const [cap, setCap] = React.useState('')
       const [pending, setPending] = React.useState(false)
       const [error, setError] = React.useState(null)
@@ -3383,6 +3560,7 @@ window.__ModuleLoader__.load({
             question: text,
             context: context.trim(),
             mode,
+            intent,
             budgetCap,
           })
           setQuestion('')
@@ -3441,6 +3619,18 @@ window.__ModuleLoader__.load({
             placeholder: t('contextPlaceholder'),
             onChange: (event) => setContext(event.target.value),
           }),
+        ),
+        h(
+          'div',
+          { className: 'ec-form-row' },
+          h('label', { className: 'ec-label', htmlFor: 'ec-intent' }, t('intentLabel')),
+          h(
+            'select',
+            { id: 'ec-intent', className: 'ec-select', value: intent, onChange: (event) => setIntent(event.target.value) },
+            intentOptions(t, props.protocol).map((option) => h('option', { key: option.id, value: option.id }, option.label)),
+          ),
+          h('p', { className: 'ec-hint' }, intent === 'task' ? t('intentTaskWhen') : t('intentReviewWhen')),
+          intent === 'task' ? h('p', { className: 'ec-hint' }, t('taskBudgetHint')) : null,
         ),
         h(
           'div',
@@ -3594,6 +3784,7 @@ window.__ModuleLoader__.load({
           : h(ConveneForm, {
               t,
               team,
+              protocol: props.protocol,
               focusConvene: props.focusConvene,
               questionMin: props.questionMin,
               onConvene: props.onConvene,
@@ -3731,10 +3922,13 @@ window.__ModuleLoader__.load({
       const rounds = headConsult && Array.isArray(headConsult.rounds) ? headConsult.rounds : []
       const run = headConsult && headConsult.run && typeof headConsult.run === 'object' ? headConsult.run : null
       const runRunning = Boolean(run && run.status === 'running')
+      const intent =
+        headConsult && headConsult.intent === 'task' ? 'task' : run && run.intent === 'task' ? 'task' : 'review'
+      const isTask = intent === 'task'
       const domainArtifacts = domain && Array.isArray(domain.artifacts) ? domain.artifacts.filter(nonEmpty) : []
       const artifactNotes = verdict && Array.isArray(verdict.artifactNotes) ? verdict.artifactNotes.filter(nonEmpty) : []
       const artifactsBlock =
-        verdict && domainArtifacts.length > 0
+        !isTask && verdict && domainArtifacts.length > 0
           ? h(
               'div',
               { className: 'ec-block' },
@@ -3762,22 +3956,32 @@ window.__ModuleLoader__.load({
                 : null,
             )
           : null
-      const reportBar =
-        reportAvailable && verdict
-          ? h(
-              'div',
-              { className: 'ec-report-bar' },
-              h('button', { type: 'button', className: 'ec-btn ec-btn-sm', onClick: () => void openReport() }, t('reportView')),
-              h('button', { type: 'button', className: 'ec-btn ec-btn-sm', onClick: () => void downloadReport() }, t('reportDownload')),
-            )
+      const reportButtons = h(
+        'div',
+        { className: 'ec-report-bar' },
+        h(
+          'button',
+          {
+            type: 'button',
+            className: `ec-btn ec-btn-sm${isTask ? ' ec-btn-primary' : ''}`,
+            onClick: () => void openReport(),
+          },
+          isTask ? t('taskReportView') : t('reportView'),
+        ),
+        h('button', { type: 'button', className: 'ec-btn ec-btn-sm', onClick: () => void downloadReport() }, t('reportDownload')),
+      )
+      const reportBar = !isTask && reportAvailable && verdict ? reportButtons : null
+      const taskReportBar =
+        isTask && reportAvailable && verdict
+          ? h('div', { className: 'ec-report-cta' }, h('p', { className: 'ec-hint' }, t('taskReportNote')), reportButtons)
           : null
       const runBody = headConsult
         ? h(
             'div',
             { className: 'ec-run' },
             run || runSnapshot
-              ? h(RunTimeline, { t, mode: headConsult.mode, run, snapshot: runSnapshot })
-              : h('p', { className: 'ec-empty-inline' }, t('runIdleHint')),
+              ? h(RunTimeline, { t, mode: headConsult.mode, intent, run, snapshot: runSnapshot })
+              : h('p', { className: 'ec-empty-inline' }, isTask ? t('taskRunIdleHint') : t('runIdleHint')),
             h(
               'div',
               { className: 'ec-report-bar' },
@@ -3820,7 +4024,7 @@ window.__ModuleLoader__.load({
         }
       }
 
-      const verdictBody = verdict
+      const reviewVerdictBody = verdict
         ? h(
             React.Fragment,
             null,
@@ -3888,6 +4092,57 @@ window.__ModuleLoader__.load({
             reportBar,
           )
         : h('p', { className: 'ec-empty-inline' }, t('noVerdict'))
+
+      const taskResultBody =
+        verdict && isTask
+          ? h(
+              'div',
+              { className: 'ec-task-result' },
+              h('h3', { className: 'ec-task-title' }, nonEmpty(verdict.decision) ? verdict.decision : t('taskResultTitle')),
+              nonEmpty(verdict.rationale)
+                ? h(
+                    'div',
+                    { className: 'ec-block' },
+                    h('span', { className: 'ec-lens-label' }, t('taskSummary')),
+                    h('p', { className: 'ec-raw' }, verdict.rationale),
+                  )
+                : null,
+              Array.isArray(verdict.actions) && verdict.actions.length > 0
+                ? h(
+                    'div',
+                    { className: 'ec-block' },
+                    h('span', { className: 'ec-lens-label' }, t('taskNextActions')),
+                    h('ul', { className: 'ec-bullets' }, verdict.actions.map((item, index) => h('li', { key: `task-action-${index}` }, item))),
+                  )
+                : null,
+              h(
+                'div',
+                { className: 'ec-block' },
+                h('span', { className: 'ec-lens-label' }, t('taskDeliverables')),
+                artifactNotes.length > 0
+                  ? h(
+                      'ul',
+                      { className: 'ec-artifacts' },
+                      artifactNotes.map((item, index) =>
+                        h(
+                          'li',
+                          { key: `task-artifact-${index}`, className: 'ec-artifact ec-artifact-on' },
+                          h('span', { className: 'ec-artifact-box' }, '✓'),
+                          h('span', null, item),
+                        ),
+                      ),
+                    )
+                  : h('p', { className: 'ec-empty-inline' }, t('taskDeliverablesEmpty')),
+              ),
+              h('p', { className: 'ec-hint' }, t('taskNoReview')),
+              taskReportBar,
+            )
+          : null
+      const verdictBody = isTask
+        ? verdict
+          ? taskResultBody
+          : h('p', { className: 'ec-empty-inline' }, t('taskNoResult'))
+        : reviewVerdictBody
 
       const disagreementsBody =
         disagreements.length === 0
@@ -3994,6 +4249,7 @@ window.__ModuleLoader__.load({
             { className: 'ec-detail-meta' },
             headConsult ? h(StatusChip, { t, status: headConsult.status }) : null,
             headConsult ? h(ModeChip, { t, mode: headConsult.mode }) : null,
+            headConsult ? h(IntentChip, { t, intent }) : null,
             domain
               ? h(Chip, { dot: false, tone: 'info', label: t('domainLabel'), value: pickName(lang, domain.name) || domain.id })
               : null,
@@ -4023,9 +4279,9 @@ window.__ModuleLoader__.load({
                 nonEmpty(context) ? h('p', { className: 'ec-context' }, context) : h('p', { className: 'ec-empty-inline' }, t('contextEmpty')),
               ),
               h(Section, { index: '02', title: t('runTitle') }, runBody),
-              h(Section, { index: '03', title: t('sectionVerdict') }, verdictBody),
-              h(Section, { index: '04', title: t('sectionDisagreements'), aside: String(disagreements.length) }, disagreementsBody),
-              h(Section, { index: '05', title: t('sectionRounds'), aside: String(rounds.length) }, roundsBody),
+              h(Section, { index: '03', title: isTask ? t('taskResultTitle') : t('sectionVerdict') }, verdictBody),
+              isTask ? null : h(Section, { index: '04', title: t('sectionDisagreements'), aside: String(disagreements.length) }, disagreementsBody),
+              isTask ? null : h(Section, { index: '05', title: t('sectionRounds'), aside: String(rounds.length) }, roundsBody),
               headConsult.status !== 'archived'
                 ? h(
                     'div',
@@ -4048,6 +4304,7 @@ window.__ModuleLoader__.load({
         reportOpen
           ? h(ReportModal, {
               t,
+              title: isTask ? t('taskReportTitle') : t('reportTitle'),
               text: reportText,
               loading: reportLoading,
               error: reportError,
@@ -4175,6 +4432,7 @@ window.__ModuleLoader__.load({
             teamId,
             question: form.question,
             mode: form.mode,
+            intent: INTENT_IDS.includes(form.intent) ? form.intent : defaultIntent(protocol),
           }
           if (nonEmpty(form.context)) body.context = form.context
           if (finite(form.budgetCap)) body.budgetCap = form.budgetCap
@@ -4221,6 +4479,7 @@ window.__ModuleLoader__.load({
             domainId: form.domainId,
             question: form.question,
             mode: form.mode,
+            intent: INTENT_IDS.includes(form.intent) ? form.intent : defaultIntent(protocol),
           }
           const result = await apiPost(body)
           const consultId = result && nonEmpty(result.consultId) ? result.consultId : ''
@@ -4392,6 +4651,7 @@ window.__ModuleLoader__.load({
                       key: selectedDomain.id,
                       t,
                       domain: selectedDomain,
+                      protocol,
                       questionMin,
                       llmAvailable: runtimeAvailable,
                       onLaunch: conveneDomain,

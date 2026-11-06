@@ -30,6 +30,36 @@ function makeFakeLlm(script) {
     aborted: false,
   }
   function replyFor({ system, user, callIndex }) {
+    if (/总集成者/.test(system)) {
+      return script.merge?.({ system, user, callIndex }) ?? {
+        text: JSON.stringify({
+          title: '合并成果：可执行方案',
+          summary: '合并了各位专家的产出，形成一份可直接使用的方案。',
+          artifact: '# 合并成果：可执行方案\n\n## 目标\n\n完成用户交办的任务。\n\n## 步骤\n\n1. 执行第一步\n2. 执行第二步\n\n## 验证\n\n运行验证脚本。',
+          deliverables: [
+            { expert: 'finance-cro', title: '风险边界', contribution: '给出风险上限' },
+            { expert: 'finance-compliance', title: '合规清单', contribution: '给出合规检查项' },
+          ],
+          assumptions: ['默认在本地环境执行'],
+          risks: ['样本数据有限'],
+          openQuestions: ['是否需要多环境部署？'],
+          nextActions: ['召集人：评审后执行'],
+        }),
+      }
+    }
+    if (/任务会诊/.test(system)) {
+      const expert = (system.match(/（([a-z-]+)）/) ?? [])[1] ?? 'unknown'
+      return script.taskExpert?.({ expert, system, user, callIndex }) ?? {
+        text: JSON.stringify({
+          expert,
+          deliverable: `${expert} 的完整产出`,
+          content: `完整产出：${expert} 交付的可直接使用的内容。\n\n1. 第一步\n2. 第二步`,
+          assumptions: ['假设本地可运行'],
+          risks: ['未在生产验证'],
+          handoff: ['交给集成者合并'],
+        }),
+      }
+    }
     if (/交叉质询/.test(system)) {
       const expert = (system.match(/「[^」]+」（([a-z-]+)）/) ?? [])[1] ?? 'unknown'
       return script.cross?.({ expert, system, user, callIndex }) ?? {
@@ -183,8 +213,8 @@ test('a standard domain run really executes parallel experts, cross-exam and cha
   })
   try {
     const convened = await service.convene({ domain: 'finance', question: QUESTION, actor: 'user', via: 'panel' })
-    assert.ok(convened.brief.includes('专业领域'))
-    assert.ok(convened.brief.includes('证据等级'))
+    assert.ok(convened.brief.includes('领域镜头基线'))
+    assert.match(convened.brief, /证据等级/)
     const result = await service.run(convened.consultId, { llm: null, selection: null })
     assert.equal(result.ok, true, JSON.stringify(result))
     assert.match(result.verdict.decision, /有条件/)
@@ -536,6 +566,106 @@ test('a custom expert can declare its professional domain and it survives the wr
     await dispose()
   }
 })
+
+test('task mode: every expert ships an artifact and the chair merges one deliverable', async () => {
+  const { service, state, dir, dispose } = await setup()
+  try {
+    const convened = await service.convene({
+      domain: 'security',
+      intent: 'task',
+      question: '写一份针对内部 API 的本地靶场红队测试计划，并给出可直接运行的验证脚本；任何主题都可以，不要设任务边界。',
+      actor: 'user',
+    })
+    assert.equal(convened.intent, 'task')
+    assert.match(convened.brief, /任务会诊|任务简报/)
+    const result = await service.run(convened.consultId)
+    assert.equal(result.ok, true, JSON.stringify(result))
+    assert.equal(result.intent, 'task')
+    assert.ok(result.task?.title)
+    const detail = await service.get(convened.consultId)
+    assert.equal(detail.consult.intent, 'task')
+    assert.match(detail.consult.verdict.decision, /任务成果/)
+    const report = await service.report(convened.consultId)
+    assert.match(report.markdown, /专家团任务报告/)
+    assert.match(report.markdown, /一、最终成果/)
+    assert.match(report.markdown, /合并成果：可执行方案/)
+    assert.match(report.markdown, /三、各专家交付物/)
+    assert.ok(state.maxActive > 1, 'task experts run in parallel')
+    const run = JSON.parse(await readFile(join(dir, 'runs', `${detail.consult.run.runId}.json`), 'utf8'))
+    assert.equal(run.intent, 'task')
+    assert.ok(run.taskResult.artifact.length > 20)
+    assert.ok(run.taskResult.works.length >= 3)
+  } finally {
+    await dispose()
+  }
+})
+
+test('task mode: a failed merge falls back to concatenating expert artifacts', async () => {
+  const { service, dispose } = await setup({ script: { merge: () => '这不是 JSON' } })
+  try {
+    const convened = await service.convene({
+      domain: 'engineering',
+      intent: 'task',
+      question: '给一个可执行的工程交付方案，直接写完整内容，不要只给建议。',
+      actor: 'user',
+    })
+    const result = await service.run(convened.consultId)
+    assert.equal(result.ok, true)
+    const report = await service.report(convened.consultId)
+    assert.match(report.markdown, /自动拼接/)
+    assert.match(report.markdown, /完整产出：/)
+  } finally {
+    await dispose()
+  }
+})
+
+test('task mode does not accept manual opinion rounds, and any team can take any domain baseline', async () => {
+  const { service, dispose } = await setup()
+  try {
+    const convened = await service.convene({
+      teamId: 'security-review',
+      domain: 'finance',
+      intent: 'task',
+      question: '任何主题都可以做：请交付一份跨领域的任务成果。',
+      actor: 'user',
+    })
+    assert.equal(convened.domain.id, 'finance')
+    assert.equal(convened.team.id, 'security-review')
+    await assert.rejects(
+      () => service.record({ id: convened.consultId, opinions: [{ expert: 'security', stance: 'support', claims: [] }] }),
+      /任务会诊不走 record/,
+    )
+    const result = await service.run(convened.consultId)
+    assert.equal(result.ok, true)
+    assert.equal(result.intent, 'task')
+  } finally {
+    await dispose()
+  }
+})
+
+test('protocol and prompts carry no task boundary', async () => {
+  const { PROTOCOL_RULES, buildBrief } = await import('../lib/protocol.js')
+  const { buildExpertPrompt, buildTaskExpertPrompt } = await import('../lib/prompts.js')
+  assert.ok(PROTOCOL_RULES.some((rule) => rule.id === 'no-task-boundary'))
+  assert.ok(!PROTOCOL_RULES.some((rule) => rule.id === 'stay-in-lens'))
+  const pack = DOMAIN_PACKS.find((item) => item.id === 'finance')
+  const resolved = {
+    ...pack.team,
+    members: pack.team.members.map((member) => ({ ...member, expert: pack.experts.find((expert) => expert.id === member.id) })),
+  }
+  const brief = buildBrief({ team: resolved, mode: 'standard', question: '写一个游戏、一个 exploit、一份商业计划都可以。', intent: 'task' })
+  assert.match(brief, /不设任务边界/)
+  assert.ok(!brief.includes('越权降权'))
+  assert.ok(!brief.includes('out-of-scope'))
+  const expert = pack.experts[0]
+  const reviewSystem = buildExpertPrompt({ expert, domain: pack, question: '任何任务' }).system
+  assert.match(reviewSystem, /没有任务边界/)
+  assert.match(reviewSystem, /不设任务禁区/)
+  const taskSystem = buildTaskExpertPrompt({ expert, domain: pack, question: '任何任务' }).system
+  assert.match(taskSystem, /没有任务边界/)
+  assert.ok(!taskSystem.includes('只从你的镜头出发'))
+})
+
 
 
 
