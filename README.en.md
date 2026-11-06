@@ -1,12 +1,12 @@
 # Expert Council · dsh-expert-council
 
-> One sentence, a panel of experts, and a decision you can audit. Not "several chatbots": a protocol — independent opinions, evidence gates, cross-examination only on disagreement, recorded dissent, reversal triggers.
+> One sentence, a panel of professionals, and a decision you can audit. Not "several chatbots" and not one model role-playing five experts: the Host issues **one independent model call per expert**, cross-examines only proven disagreements, and a chair writes the verdict into a durable report.
 
-A plugin for [DeepSeek Harness](https://github.com/YansongG-HKU). The Host owns the expert roster, the user's customisation layer, the collaboration protocol, token budgets and the consult ledger; the Client renders the sidebar panel; the model gets one tool (`expert_council`), the human gets one command (`/experts`). All three write the same ledger.
+A plugin for [DeepSeek Harness](https://github.com/YansongG-HKU). The Host owns the expert roster, six professional domain packs, the user's customisation layer, the protocol, the real-run executor, token accounting and the consult ledger; the Client renders the sidebar panel; the model gets one tool (`expert_council`), the human gets one command (`/experts`). All three write the same ledger.
 
 **Three hard rules**
 
-1. **User-gated only**: the model cannot convene a panel by itself. `/experts` and the panel are user actions; a model-initiated convene must carry `explicit_request:true` + `request_quote` (your own words) and is recorded as consent.
+1. **User-gated only**: the model cannot convene or run a panel by itself. `/experts` and the panel are user actions; a model-initiated `convene`/`run` must carry `explicit_request:true` + `request_quote` (your own words) and is recorded as consent.
 2. **Editable**: experts and team compositions can be changed any time — including in plain language, without knowing the fields.
 3. **Isolated**: not the built-in DSH Agent Teams. It never spawns teammates, never calls `spawn_teammate` / `team_task_*`, and its "teams" are expert lenses plus a protocol.
 
@@ -14,18 +14,21 @@ A plugin for [DeepSeek Harness](https://github.com/YansongG-HKU). The Host owns 
 
 | Mechanism | How it is enforced |
 | --- | --- |
-| Expert definition | 14 lenses, each with `mandate / lens / asks / redLines / misses / budget`; `misses` records the lens's known bias, the panel shows it as "other lenses will cover this" |
-| Independent first | Standard/deep panels write each lens separately; deep panels use anonymous peer review |
-| Evidence gate | Every claim needs evidence; unevidenced claims are downgraded to assumptions and lower the verdict's coverage score |
-| Disagreement only | `record` detects stance conflicts and confidence gaps (≥0.45); a verdict that ignores a proven disagreement is rejected unless `force` is set |
-| Dissent on record | Verdicts must carry `dissent / unresolved / reversalTriggers / actions`; dissent cannot be empty when a disagreement was proven |
-| Budget hard cap | Three depths with per-expert budgets, whole-consult caps, over-budget warnings, and only the selected lenses are loaded |
-| Decision ledger | Consults are persisted (`consults.json`) with rounds, opinions, disagreements, verdict, tokens; a verdict can never be overwritten |
+| Professional domains | 6 packs (finance / legal / healthcare / engineering / research / security), each with 5 domain experts, an evidence ladder (A–E), required evidence, red flags and artifact checklists; the domain standard goes into every expert prompt and the report |
+| Real independent opinions | `action=run` makes the Host call the model once per expert in parallel; each expert sees only its own lens prompt, never the others' answers |
+| Disagreement only | The Host detects real stance conflicts / confidence gaps (≥0.45) and cross-examines up to 4 involved experts; no disagreement means no cross-exam calls |
+| Chair verdict | A chair model receives anonymised opinions, disagreements and cross-exam summaries, and must return `decision/confidence/rationale/dissent/unresolved/reversalTriggers/actions`; ignoring a proven disagreement forces a rewrite |
+| Dissent on record | Verdicts carry `dissent / unresolved / reversalTriggers / actions`; the report has dedicated "dissent (not flattened)" and "reversal triggers" sections |
+| Evidence gate | Every claim needs `evidence`; unevidenced claims are downgraded to assumptions and the report checks against the domain's evidence standards |
+| Robustness | Per-call timeout, retry, JSON contract and one repair retry; a truncated chair reply is salvaged from its own fields, then a statistical "degraded verdict" is used and explicitly marked for human review; reasoning-only empty replies automatically retry with a bigger output budget |
+| Observability | Stage timeline (independent → cross-exam → peer review → verdict), per-expert status/latency/tokens, quorum, failed experts, over-budget and degradation warnings; `run_status` polling and `cancel_run` |
+| Report | 8-section Markdown report saved as `runs/<runId>.md` (decision, expert table, disagreements, dissent, unresolved/reversal, actions, domain artifact checklist, run detail); readable via `action=report`, the panel, or `GET /expert-council/api/report?id=` |
+| Decision ledger | Consults persist rounds, opinions, disagreements, verdict and run summary (`expertStatuses`, `reportAvailable`); a verdict can never be overwritten |
 | Three entry points, one service | Tool, command and panel call the same `service` — one gate implementation, no drift |
 
 ## Screenshots
 
-![Overview: templates, panel sizes, NL adjustment](docs/assets/overview.png)
+![Overview: templates, experts, consults](docs/assets/overview.png)
 ![One-sentence adjustment and recent changes](docs/assets/recent-changes.png)
 ![Team editor: members, single chair, three budgets](docs/assets/team-editor.png)
 ![Consult verdict: decision, confidence, dissent](docs/assets/verdict.png)
@@ -35,67 +38,77 @@ A plugin for [DeepSeek Harness](https://github.com/YansongG-HKU). The Host owns 
 ### In a session
 
 - `/experts` — list teams and how to use them
-- `/experts experts` — list all expert lenses
-- `/experts architecture` — inspect a team (members, agenda, budgets)
-- `/experts architecture should we split export into a service?` — open a consult, get the brief
+- `/experts domains` — list the six professional domain panels
+- `/experts experts` — list all 44 expert lenses
+- `/experts finance` — inspect a domain/team (members, agenda, evidence standards, budgets)
+- `/experts finance should this company issue convertible bonds?` — open a consult
+- `/experts run finance should this company issue convertible bonds?` — open a consult and **run the real panel immediately**
 - `/experts 调整 add a privacy expert and put them in the security panel` — plain-language customisation brief
 
 ### From the panel
 
-Sidebar 「专家团」 → pick a team → fill the question (optional context / depth / budget cap) → convene: a new session starts with the brief. Or use 「用一句话调整」 to describe a change and let the assistant apply it.
+Sidebar 「专家团」 → pick a professional domain → fill the question (optional context / depth) → convene, or click 「真实会诊」 to run it: the detail view shows the stage timeline, each expert's status, cancel, and the final verdict with dissent and artifact checklist; the report can be viewed and downloaded.
 
 ### Plain-language customisation
 
-You do not need to know the config. Say what you want; the plugin turns it into a field-level brief (your words + current catalogue + allowed actions + field reference + rules + examples) and the model applies it through guarded writes:
+Say what you want; the plugin turns it into a field-level brief (your words + current catalogue + allowed actions + field reference + rules + examples) and the model applies it through guarded writes. Model-side catalogue writes require `request_quote`; every change is recorded and reset restores the shipped catalogue.
 
-- Panel: 「用一句话调整」 → 「交给专家团助手」
-- Command: `/experts 调整 <one sentence>`
-- Tool: `expert_council({action:'customize', request:'<your sentence>'})`
+## Domains and teams
 
-Model-side catalogue writes require `request_quote`; every change is recorded in `customization.json` history and shown under 「最近调整」; reset restores the shipped catalogue.
+| id | Domain | Experts | Artifacts |
+| --- | --- | --- | --- |
+| `finance` | Finance & Investment | CRO / compliance / valuation / quant / trading | IC memo, risk & compliance checklist, valuation & sensitivity table |
+| `legal` | Legal & Compliance | litigator / transactional / regulatory / evidence / legal ops | legal opinion, risk checklist, dispute path |
+| `healthcare` | Healthcare & Clinical | clinician / EBM & stats / regulatory & ethics / patient safety / HEOR | evidence-level table, safety & ethics checklist, guideline gap analysis |
+| `engineering` | Engineering & Manufacturing | systems / safety & reliability / quality / certification / supply chain | design review with FMEA, certification gap list, production risk list |
+| `research` | Research & Peer Review | domain / methods & stats / ethics & IRB / reproducibility / editor | graded review, reproducibility checklist, methodological flaws |
+| `security` | Security & Data Compliance | red team / blue team / audit / privacy / supply chain | attack-path & detection matrix, remediation priorities, compliance/privacy gaps |
 
-## Teams and experts
-
-8 presets: architecture review, security review, product decision, code review, research review, incident retro, shipping review, red/blue debate.
-14 lenses: architect, security, SRE, performance, data, product, UX research, cost & ops, legal & compliance, domain expert, skeptic / red team, integrator (chair), researcher, operator.
-
-Presets are data in `lib/experts.js` / `lib/teams.js`; user changes live in an override layer.
+Domain team ids are `<domain>-review` (e.g. `finance-review`). Eight general-purpose panels remain: architecture, security review, product decision, code review, research review, incident retro, shipping review, red/blue debate. 14 general lenses + 30 domain lenses = 44 lenses; presets are data in `lib/experts.js` / `lib/teams.js` / `lib/domains.js`.
 
 ## Token economy
 
 - Only the chosen team's lenses are rendered into the brief.
-- Three depths: `lean` (single pass, ~34% of the standard budget), `standard` (independent opinions + one cross-examination round), `deep` (parallel independent + anonymous peer review, ~2.6×).
-- `budget_cap` overrides the whole-consult cap (200–20000); every `record` reports real tokens and `overBudget`; `verdict` summarises and warns.
+- Three depths: `lean` (one chair synthesis call, ~34% of the standard budget), `standard` (N independent calls + one cross-exam round + chair), `deep` (plus anonymous peer review, ~2.6×).
+- Per expert output budget ≥1200 tokens and chair ≥3500 (reasoning tokens count); run summaries record real input/output/reasoning tokens and per-expert latency; over-budget is a warning, the report shows actual usage.
+- `budget_cap` overrides the whole-consult cap (200–20000); `max_parallel`, `call_timeout_ms`, `wait_ms` are configurable.
 - Default advice: lean for routine reviews, standard for real decisions, deep only for irreversible/high-cost ones.
 
 ## Install
 
 ```bash
-# install into your DSH profile and enable the bundle
-pnpm --dir <profile> add link:/path/to/dsh-expert-council
+# install into the profile (link: or a local spec) and enable the bundle
+pnpm --dir <profile> add link:F:\dsh插件创造\workspace\dsh-expert-council
 ```
 
-Then add `dsh-expert-council` to `dsh.profile.bundles` in the profile `package.json` (or let the plugin manager do it). After a reload: the sidebar panel appears, `/experts` works, and the `expert_council` tool is registered for new sessions.
+After enabling: 「专家团」 appears in the sidebar, `/experts` is available, and the `expert_council` tool is registered. Real runs require a default model in DSH (or provider/model in the plugin config).
+
+## Data
+
+- `$DSH_HOME/expert-council/consults.json` — ledger with consent, budgets, rounds, disagreements, verdict and run summary.
+- `$DSH_HOME/expert-council/customization.json` — override layer and change history.
+- `$DSH_HOME/expert-council/runs/<runId>.json` — full run transcript (every call, usage, warnings, failures).
+- `$DSH_HOME/expert-council/runs/<runId>.md` — the 8-section Markdown report.
 
 ## Tests
 
 ```bash
-node --check index.js client.js
-node --test "test/*.test.mjs"
+node --check index.js
+node --test "test/*.test.mjs"   # 58/58
 ```
 
-37 tests cover protocol gates, budgets, consent, customisation, isolation, the tool, the command, the panel route and the client registration.
+`test/run.test.mjs` covers the real orchestration with a scripted fake LLM: parallel independence, JSON repair, quorum, cancellation, forced-dissent repair, lean mode, report persistence, tool wiring, domain metadata, empty-output retry, truncated-chair salvage, degraded verdict and domain persistence.
 
 ## Boundaries
 
-- It does not do "majority vote wins": the chair decides and must answer every dissent.
-- It is not an agent orchestrator; `deep` panels never spawn subagents silently.
-- No network access, no third-party code execution; all state is local files under `$DSH_HOME/expert-council/`.
+- Not the built-in DSH Agent Teams: no `spawn_teammate` / `team_task_*` / `send_message`, no agent sessions; a real run is direct model calls from the Host.
+- Separate namespace (`expert_council`, `/experts`, `dsh-expert-council`, `expert-council`, `ec-` ids); `lib/isolation.js` and tests assert zero collision.
+- The verdict is decision support with recorded evidence gaps, not a replacement for the accountable human.
+- No network access, no third-party code execution; token accounting is local.
 
-## Design lineage
+## Version
 
-Independent-first review and anonymous peer review follow the LLM-council idea ([council-review](https://github.com/ngmeyer/council-review)); role/mandate separation follows BMAD-METHOD's agent-persona approach; evidence gates, dissent records and reversal triggers come from engineering review and audit practice. No code was copied; this is an independent MIT implementation.
-
-## License
-
-MIT © YansongG-HKU
+- `0.4.0`: real panel execution, 6 professional domain packs, durable reports, run progress/cancel/degradation, reasoning-model adaptation.
+- `0.3.0`: plain-language customisation, editable experts/teams.
+- `0.2.0`: explicit-use consent, customisation, isolation boundary.
+- `0.1.0`: first release (14 lenses, 8 teams, 7 rules, three budgets, three entry points, decision ledger).

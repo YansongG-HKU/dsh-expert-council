@@ -1,7 +1,7 @@
 {
   "name": "dsh-expert-council",
-  "version": "0.3.1",
-  "description": "User-gated expert panels for DSH: describe adjustments in plain language, editable experts and team composition, explicit-use consent, isolation from built-in Agent Teams, evidence-first protocol, token budgets and a queryable decision ledger.",
+  "version": "0.4.0",
+  "description": "User-gated, domain-specific expert panels for DSH: real parallel model calls per expert, professional evidence standards, cross-examination of proven disagreements, a chair verdict with recorded dissent, durable Markdown reports, and a queryable decision ledger — never built-in Agent Teams.",
   "license": "MIT",
   "author": "YansongG-HKU",
   "repository": {
@@ -17,7 +17,7 @@
     "deepseek-harness",
     "expert-panel",
     "multi-expert-review",
-    "decision-ledger",
+    "decision-ledger","domain-panels","real-panel","expert-review",
     "protocol",
     "token-budget"
   ],
@@ -68,3 +68,4 @@
     "dsh": ">=0.2.2-rc.1"
   }
 }
+

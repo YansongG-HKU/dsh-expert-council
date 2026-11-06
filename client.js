@@ -27,11 +27,14 @@ window.__ModuleLoader__.load({
     /** Host routes registered by lib/panel.js. */
     const API_STATE = '/expert-council/api/state'
     const API_CONSULT = '/expert-council/api/consult'
+    const API_REPORT = '/expert-council/api/report'
     const API_ACTION = '/expert-council/api/action'
     /** Request header that gates the Host routes. */
     const HEADER_NAME = 'x-expert-council'
     /** Auto-refresh cadence for the panel while it is mounted and visible. */
     const REFRESH_MS = 3000
+    /** Poll cadence for one consult while a real run is in progress. */
+    const RUN_POLL_MS = 1500
     /** Cool accent for the council identity; amber is reserved by its sibling forge panel. */
     const ACCENT = '#6d8df0'
     /** Convene constraints mirrored from the Host protocol. */
@@ -192,6 +195,72 @@ window.__ModuleLoader__.load({
         overviewDesc: '目录规模与会诊用量；上面的提示条说明调用边界。',
         teamsDesc: '固定镜头组合；先从模板开会，再按需自建或覆盖。',
         consultsDesc: '会诊与裁决都留档；点开可核对异议与推翻条件。',
+        selectedLabel: '已选',
+        runtimeWarning: '未选择默认模型，真实会诊不可用',
+        domainsTitle: '专业领域',
+        domainsDesc: '选一个领域：每个领域有 5 位专家镜头、证据等级与交付物，写清要决定的事即可立案。',
+        domainLabel: '领域',
+        domainEmpty: '领域包不可用',
+        evidenceTitle: '证据等级',
+        evidenceRequired: '必备证据',
+        redFlags: '红旗',
+        domainLaunchTitle: '发起会诊',
+        launchConvene: '立案',
+        launchRun: '真实会诊',
+        launchRunUnavailable: '未选择默认模型，真实会诊不可用',
+        launchHint: '立案只创建会诊与简报；真实会诊会立即调用模型并写回意见与裁决。',
+        launchError: '发起失败：{message}',
+        runTitle: '真实会诊',
+        runIdleHint: '还没有真实会诊；点「真实会诊」让模型并行给出意见。',
+        stageTitle: '阶段',
+        stageIndependent: '独立成稿',
+        stageCross: '交叉质询',
+        stagePeer: '同行评议（深会诊）',
+        stageVerdict: '主持裁决',
+        stageSkipped: '跳过',
+        stageActive: '进行中',
+        stageDone: '已完成',
+        stagePending: '待开始',
+        runStatusRunning: '运行中',
+        runStatusFinished: '已完成',
+        runStatusFailed: '失败',
+        runStatusCanceled: '已取消',
+        runProvider: '模型',
+        runTokensLabel: '用量',
+        runDurationLabel: '耗时',
+        unitMs: '毫秒',
+        unitSeconds: '秒',
+        runBudgetLabel: '预算',
+        runErrorLabel: '失败原因',
+        runExpertsTitle: '专家状态',
+        runExpertEmpty: '还没有专家结果',
+        runExpertOk: '成功',
+        runExpertDegraded: '降级',
+        runExpertFailed: '失败',
+        runExpertRunning: '进行中',
+        runFailedExperts: '失败专家 {count} 位',
+        runQuorum: '法定人数 {success}/{required}',
+        runQuorumMissing: '独立意见不足法定人数，结论可信度下降',
+        cancelRun: '取消',
+        canceling: '取消中…',
+        cancelRunDone: '已取消',
+        cancelRunFailed: '取消失败：{message}',
+        reportTitle: '完整报告',
+        reportView: '查看完整报告',
+        reportDownload: '下载 Markdown',
+        reportLoading: '正在读取报告…',
+        reportFailed: '读取报告失败：{message}',
+        reportClose: '关闭',
+        reportMarker: '报告',
+        artifactDelivered: '已产出',
+        artifactNotes: '交付说明',
+        emptyGuideTitle: '还没有会诊',
+        emptyGuideHint: '选一个领域 → 写清要决定的事 → 真实会诊',
+        emptyGuideStep1: '选一个专业领域',
+        emptyGuideStep2: '写清要决定的事',
+        emptyGuideStep3: '点「真实会诊」让专家团开始',
+        expertDomainLabel: '所属领域（可选）',
+        expertDomainNone: '不指定',
         consentNotice: '仅在你明确发起时使用：模型不会主动召开会诊，与 DSH 智能体团队（Agent Teams）无关。',
         consentNoticeOff: '显式调用门禁已关闭：模型也可以主动召开会诊；与 DSH 智能体团队（Agent Teams）仍互相独立。',
         newTeam: '新建团队',
@@ -402,6 +471,72 @@ window.__ModuleLoader__.load({
         overviewDesc: 'Catalog size and consult usage; the notice above states the invocation boundary.',
         teamsDesc: 'Fixed lens combinations; start from a template, then create or override your own.',
         consultsDesc: 'Consults and verdicts stay on record; open one to review dissent and reversal triggers.',
+        selectedLabel: 'Selected',
+        runtimeWarning: 'No default model is selected, so real consults are unavailable',
+        domainsTitle: 'Professional domains',
+        domainsDesc: 'Pick a field: each ships five expert lenses, an evidence ladder and deliverables. State the decision to file a consult.',
+        domainLabel: 'Domain',
+        domainEmpty: 'No domain packs available',
+        evidenceTitle: 'Evidence ladder',
+        evidenceRequired: 'Required evidence',
+        redFlags: 'Red flags',
+        domainLaunchTitle: 'Launch a consult',
+        launchConvene: 'File consult',
+        launchRun: 'Run for real',
+        launchRunUnavailable: 'Real consults need a default model (unavailable)',
+        launchHint: 'Filing only creates the consult and brief; a real run calls the models immediately and writes opinions and a verdict.',
+        launchError: 'Launch failed: {message}',
+        runTitle: 'Real run',
+        runIdleHint: 'No real run yet; click Run for real to have the models produce opinions.',
+        stageTitle: 'Stages',
+        stageIndependent: 'Independent',
+        stageCross: 'Cross-examination',
+        stagePeer: 'Peer review (deep)',
+        stageVerdict: 'Chair verdict',
+        stageSkipped: 'Skipped',
+        stageActive: 'Active',
+        stageDone: 'Done',
+        stagePending: 'Pending',
+        runStatusRunning: 'Running',
+        runStatusFinished: 'Finished',
+        runStatusFailed: 'Failed',
+        runStatusCanceled: 'Canceled',
+        runProvider: 'Model',
+        runTokensLabel: 'Usage',
+        runDurationLabel: 'Duration',
+        unitMs: 'ms',
+        unitSeconds: 's',
+        runBudgetLabel: 'Budget',
+        runErrorLabel: 'Error',
+        runExpertsTitle: 'Expert status',
+        runExpertEmpty: 'No expert results yet',
+        runExpertOk: 'OK',
+        runExpertDegraded: 'Degraded',
+        runExpertFailed: 'Failed',
+        runExpertRunning: 'Running',
+        runFailedExperts: '{count} expert(s) failed',
+        runQuorum: 'Quorum {success}/{required}',
+        runQuorumMissing: 'Below quorum: fewer independent opinions than required, so confidence drops',
+        cancelRun: 'Cancel',
+        canceling: 'Canceling…',
+        cancelRunDone: 'Canceled',
+        cancelRunFailed: 'Cancel failed: {message}',
+        reportTitle: 'Full report',
+        reportView: 'View full report',
+        reportDownload: 'Download Markdown',
+        reportLoading: 'Loading report…',
+        reportFailed: 'Report failed: {message}',
+        reportClose: 'Close',
+        reportMarker: 'Report',
+        artifactDelivered: 'Delivered',
+        artifactNotes: 'Artifact notes',
+        emptyGuideTitle: 'No consults yet',
+        emptyGuideHint: 'Pick a domain → state the decision → run for real',
+        emptyGuideStep1: 'Pick a professional domain',
+        emptyGuideStep2: 'State the decision clearly',
+        emptyGuideStep3: 'Click Run for real to start the panel',
+        expertDomainLabel: 'Domain (optional)',
+        expertDomainNone: 'Not assigned',
         consentNotice: 'Only when you explicitly start it: the model never convenes a consult on its own, and this is unrelated to DSH Agent Teams.',
         consentNoticeOff: 'The explicit-invocation gate is off: the model may also convene a consult. It remains independent from DSH Agent Teams.',
         newTeam: 'New team',
@@ -557,6 +692,8 @@ window.__ModuleLoader__.load({
 .ec-consult-row:hover { background: var(--ec-hover); }
 .ec-consult-row:focus-visible { outline: 2px solid var(--ec-accent); outline-offset: -2px; }
 .ec-consult-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ec-consult-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.ec-consult-report { font-family: var(--ec-mono); font-size: 10px; line-height: 15px; color: var(--ec-ink-4); border: 0.5px solid var(--ec-line-2); border-radius: 4px; padding: 0 4px; margin-left: 4px; }
 .ec-consult-team { font-size: 11.5px; line-height: 16px; color: var(--ec-ink-3); }
 .ec-consult-question { font-size: 12.5px; line-height: 18px; color: var(--ec-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ec-consult-decision { font-size: 11.5px; line-height: 16px; color: var(--ec-ink-4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -617,7 +754,7 @@ window.__ModuleLoader__.load({
 .ec-verdict-grid { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 7px 12px; align-items: start; }
 .ec-verdict-block { display: flex; flex-direction: column; gap: 4px; }
 .ec-verdict-decision { margin: 0; font-size: 13px; line-height: 20px; font-weight: 600; color: var(--ec-ink); overflow-wrap: anywhere; }
-.ec-dissent { display: flex; flex-direction: column; gap: 5px; padding: 8px 10px; border-left: 2px solid var(--ec-tone, var(--ec-line-2)); border-radius: 0 8px 8px 0; background: var(--ec-surface); }
+.ec-dissent { display: flex; flex-direction: column; gap: 5px; padding: 8px 10px; border-left: 3px solid var(--ec-amber); border-radius: 0 8px 8px 0; background: var(--ec-surface); }
 .ec-dissent-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ec-dissent-expert { font-size: 11.5px; line-height: 16px; font-weight: 600; color: var(--ec-ink-2); }
 .ec-dissent-point { margin: 0; font-size: 12px; line-height: 18px; color: var(--ec-ink-2); overflow-wrap: anywhere; }
@@ -693,6 +830,63 @@ window.__ModuleLoader__.load({
 .ec-history-request { margin: 0; font-size: 11px; line-height: 16px; color: var(--ec-ink-4); overflow-wrap: anywhere; }
 .ec-history-time { font-family: var(--ec-mono); font-size: 10.5px; line-height: 15px; color: var(--ec-ink-4); white-space: nowrap; }
 .ec-actor { font-size: 10.5px; line-height: 15px; color: var(--ec-ink-4); white-space: nowrap; }
+.ec-notice-warn { border-left-color: var(--ec-amber); }
+.ec-domains { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.ec-domain { display: flex; flex-direction: column; gap: 8px; padding: 13px; border: 0.5px solid var(--ec-line-2); border-radius: 12px; background: var(--ec-surface); text-align: left; color: inherit; font: inherit; cursor: pointer; }
+.ec-domain:hover { border-color: var(--ec-line-3); }
+.ec-domain:focus-visible { outline: 2px solid var(--ec-accent); outline-offset: 2px; }
+.ec-domain-on { border-color: var(--ec-accent); box-shadow: inset 0 0 0 1px var(--ec-accent); }
+.ec-domain-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.ec-domain-name { margin: 0; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ec-ink); overflow-wrap: anywhere; }
+.ec-domain-tagline { margin: 0; font-size: 12px; line-height: 18px; color: var(--ec-ink-3); }
+.ec-domain-block { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ec-domain-label { font-size: 10.5px; line-height: 15px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ec-ink-4); }
+.ec-domain-experts { display: flex; flex-wrap: wrap; gap: 5px; }
+.ec-evidence { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.ec-evidence li { font-size: 11px; line-height: 16px; color: var(--ec-ink-3); overflow-wrap: anywhere; }
+.ec-evidence-id { font-family: var(--ec-mono); color: var(--ec-accent); margin-right: 4px; }
+.ec-domain-flags { display: flex; flex-wrap: wrap; gap: 5px; }
+.ec-flag { font-size: 10.5px; line-height: 15px; color: var(--ec-ink-3); border: 0.5px solid var(--ec-line-1); border-radius: 999px; padding: 0 7px; }
+.ec-domain-artifacts { margin: 0; padding-left: 15px; font-size: 11px; line-height: 16px; color: var(--ec-ink-3); }
+.ec-launch { display: flex; flex-direction: column; gap: 9px; padding: 13px; border: 0.5px solid var(--ec-line-2); border-radius: 12px; background: var(--ec-surface); }
+.ec-launch-title { margin: 0; font-size: 12.5px; line-height: 18px; font-weight: 600; color: var(--ec-ink-2); }
+.ec-launch-row { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 10px 12px; align-items: start; }
+.ec-launch-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ec-run { display: flex; flex-direction: column; gap: 8px; }
+.ec-run-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; line-height: 17px; color: var(--ec-ink-3); }
+.ec-run-meta .ec-mono { color: var(--ec-ink-2); }
+.ec-stages { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ec-stage { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border: 0.5px solid var(--ec-line-2); border-radius: 999px; font-size: 11px; line-height: 16px; color: var(--ec-ink-4); }
+.ec-stage-on { border-color: var(--ec-accent); color: var(--ec-ink); }
+.ec-stage-done { border-color: rgba(46, 160, 67, 0.5); color: var(--ec-ink-2); }
+.ec-stage-skip { opacity: 0.6; text-decoration: line-through; }
+.ec-run-warn { margin: 0; font-size: 11.5px; line-height: 17px; color: var(--ec-amber); overflow-wrap: anywhere; }
+.ec-run-error { margin: 0; font-size: 11.5px; line-height: 17px; color: var(--ec-red); overflow-wrap: anywhere; }
+.ec-expert-table { display: flex; flex-direction: column; border-top: 0.5px solid var(--ec-line-1); }
+.ec-expert-status-row { display: grid; grid-template-columns: minmax(0, 1.4fr) auto auto auto; gap: 8px 12px; align-items: center; padding: 6px 4px; border-bottom: 0.5px solid var(--ec-line-1); font-size: 12px; line-height: 17px; color: var(--ec-ink-2); }
+.ec-expert-status-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ec-expert-status-meta { font-family: var(--ec-mono); font-size: 10.5px; line-height: 15px; color: var(--ec-ink-4); white-space: nowrap; }
+.ec-artifacts { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.ec-artifact { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 18px; color: var(--ec-ink-2); }
+.ec-artifact-box { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--ec-line-3); flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; line-height: 1; color: transparent; }
+.ec-artifact-on .ec-artifact-box { background: var(--ec-green); border-color: var(--ec-green); color: #fff; }
+.ec-artifact-status { font-size: 10.5px; line-height: 15px; color: var(--ec-ink-4); margin-left: auto; white-space: nowrap; }
+.ec-report-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ec-modal-backdrop { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0, 0, 0, 0.5); }
+.ec-modal { display: flex; flex-direction: column; gap: 10px; width: min(860px, 100%); max-height: 86vh; padding: 14px; border: 0.5px solid var(--ec-line-3); border-radius: 12px; background: var(--dsw-alias-bg-base, #1b1d22); }
+.ec-modal-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ec-modal-title { margin: 0; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ec-ink); }
+.ec-modal-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ec-report-text { margin: 0; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--ec-mono); font-size: 11.5px; line-height: 18px; color: var(--ec-ink-2); }
+.ec-guide { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ec-guide-step { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 18px; color: var(--ec-ink-2); }
+.ec-guide-num { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; border: 0.5px solid var(--ec-line-3); font-family: var(--ec-mono); font-size: 10px; color: var(--ec-accent); flex: none; }
+@media (max-width: 720px) {
+  .ec-launch-row { grid-template-columns: minmax(0, 1fr); }
+  .ec-expert-status-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .ec-expert-status-row .ec-expert-status-meta:last-child { grid-column: 2; }
+  .ec-modal-backdrop { padding: 10px; }
+}
 @media (max-width: 720px) {
   .ec-history-row { grid-template-columns: minmax(0, 1fr) auto; }
   .ec-actor { grid-column: 2; }
@@ -1010,6 +1204,75 @@ window.__ModuleLoader__.load({
       return value
     }
 
+    /** GET a text/markdown route; a JSON body means the Host rejected the read. */
+    async function apiGetText(path, query) {
+      let suffix = ''
+      if (query) {
+        try {
+          suffix = `?${new URLSearchParams(query).toString()}`
+        } catch (error) {
+          suffix = ''
+        }
+      }
+      let response
+      try {
+        response = await fetch(`${path}${suffix}`, requestInit('GET'))
+      } catch (error) {
+        throw councilError('errorNetwork')
+      }
+      const type = response.headers && typeof response.headers.get === 'function' ? response.headers.get('content-type') : ''
+      const text = await response.text()
+      if (!response.ok) {
+        let value = null
+        try {
+          value = JSON.parse(text)
+        } catch (error) {
+          value = null
+        }
+        throw responseError(response, value)
+      }
+      if (typeof type === 'string' && type.includes('application/json')) {
+        let value = null
+        try {
+          value = JSON.parse(text)
+        } catch (error) {
+          value = null
+        }
+        if (value && value.ok === false) throw responseError(response, value)
+        throw councilError('errorUnexpected')
+      }
+      return text
+    }
+
+    /** Save markdown as a local file without a server round-trip. */
+    function downloadMarkdown(filename, text) {
+      try {
+        if (typeof document === 'undefined' || typeof Blob !== 'function' || typeof URL === 'undefined') {
+          throw councilError('errorUnexpected')
+        }
+        const blob = new Blob([String(text ?? '')], { type: 'text/markdown;charset=utf-8' })
+        const href = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = href
+        link.download = filename
+        link.rel = 'noopener'
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.setTimeout(() => {
+          try {
+            URL.revokeObjectURL(href)
+          } catch (error) {
+            // Revoking is best effort.
+          }
+        }, 1000)
+        return true
+      } catch (error) {
+        if (error && error.councilKey) throw error
+        throw councilError('errorUnexpected')
+      }
+    }
+
     /**
      * Starts a session with the convening brief.
      *
@@ -1098,6 +1361,97 @@ window.__ModuleLoader__.load({
       return nonEmpty(action) ? action : t('unknown')
     }
 
+    /* ------------------------------------------------------------------ */
+    /* Real-run vocabulary: statuses, expert states and the stage ladder.   */
+    /* ------------------------------------------------------------------ */
+
+    const RUN_STATUS_KEYS = {
+      running: 'runStatusRunning',
+      finished: 'runStatusFinished',
+      failed: 'runStatusFailed',
+      canceled: 'runStatusCanceled',
+    }
+    const RUN_STATUS_TONES = { running: 'waiting', finished: 'installed', failed: 'blocked', canceled: 'muted' }
+
+    const EXPERT_STATUS_KEYS = {
+      ok: 'runExpertOk',
+      degraded: 'runExpertDegraded',
+      failed: 'runExpertFailed',
+      running: 'runExpertRunning',
+    }
+    const EXPERT_STATUS_TONES = { ok: 'installed', degraded: 'waiting', failed: 'blocked', running: 'info' }
+
+    const RUN_STAGE_KEYS = ['stageIndependent', 'stageCross', 'stagePeer', 'stageVerdict']
+
+    function RunStatusChip(props) {
+      const tone = RUN_STATUS_TONES[props.status] || 'muted'
+      return h(Chip, { tone, label: dictLabel(props.t, RUN_STATUS_KEYS, props.status, 'unknown') })
+    }
+
+    function ExpertStatusChip(props) {
+      const tone = EXPERT_STATUS_TONES[props.status] || 'muted'
+      return h(Chip, { dot: false, tone, label: dictLabel(props.t, EXPERT_STATUS_KEYS, props.status, 'unknown') })
+    }
+
+    /** Map the executor stage string onto the four user-facing stages. */
+    function stageIndexOf(stage) {
+      switch (stage) {
+        case 'independent':
+        case 'independent-done':
+        case 'independent-recorded':
+          return 0
+        case 'cross-exam':
+        case 'cross-exam-done':
+          return 1
+        case 'peer-review':
+        case 'peer-review-done':
+          return 2
+        case 'verdict':
+          return 3
+        case 'report':
+        case 'finished':
+          return 4
+        default:
+          return -1
+      }
+    }
+
+    function stageStateOf(mode, index, run) {
+      if (index === 2 && mode !== 'deep') return 'skip'
+      if (!run) return 'pending'
+      if (run.status === 'finished') return 'done'
+      const current = stageIndexOf(run.stage)
+      if (run.status === 'running') {
+        if (index < current || current >= 4) return 'done'
+        if (index === current) return 'active'
+        return 'pending'
+      }
+      if (run.status === 'failed' || run.status === 'canceled') {
+        return current >= 0 && index < current ? 'done' : 'pending'
+      }
+      return 'pending'
+    }
+
+    function stageStateLabel(t, state) {
+      if (state === 'done') return t('stageDone')
+      if (state === 'active') return t('stageActive')
+      if (state === 'skip') return t('stageSkipped')
+      return t('stagePending')
+    }
+
+    function stageStateClass(state) {
+      if (state === 'done') return ' ec-stage-done'
+      if (state === 'active') return ' ec-stage-on'
+      if (state === 'skip') return ' ec-stage-skip'
+      return ''
+    }
+
+    function formatDuration(t, milliseconds) {
+      if (!finite(milliseconds) || milliseconds <= 0) return t('unknown')
+      if (milliseconds < 1000) return `${Math.round(milliseconds)} ${t('unitMs')}`
+      return `${(milliseconds / 1000).toFixed(1)} ${t('unitSeconds')}`
+    }
+
     function dictLabel(t, map, value, fallbackKey) {
       if (typeof value === 'string' && Object.prototype.hasOwnProperty.call(map, value)) return t(map[value])
       return t(fallbackKey || 'unknown')
@@ -1177,6 +1531,8 @@ window.__ModuleLoader__.load({
       const [state, setState] = React.useState({
         consult: null,
         team: null,
+        domain: null,
+        reportAvailable: false,
         loading: true,
         error: null,
         missing: false,
@@ -1185,25 +1541,63 @@ window.__ModuleLoader__.load({
 
       React.useEffect(() => {
         if (!nonEmpty(id)) {
-          setState({ consult: null, team: null, loading: false, error: null, missing: false })
+          setState({
+            consult: null,
+            team: null,
+            domain: null,
+            reportAvailable: false,
+            loading: false,
+            error: null,
+            missing: false,
+          })
           return undefined
         }
         let cancelled = false
+        let timer = null
         const current = ++ticket.current
-        setState((previous) => ({ ...previous, loading: true, error: null }))
-        apiGet(API_CONSULT, { id })
-          .then((value) => {
+        const stopTimer = () => {
+          if (timer !== null) {
+            window.clearTimeout(timer)
+            timer = null
+          }
+        }
+
+        const fetchOnce = async (initial) => {
+          if (cancelled) return
+          if (initial) setState((previous) => ({ ...previous, loading: true, error: null }))
+          try {
+            const value = await apiGet(API_CONSULT, { id })
             if (cancelled || current !== ticket.current) return
             const consult = value && value.consult && typeof value.consult === 'object' ? value.consult : null
             const team = value && value.team && typeof value.team === 'object' ? value.team : null
-            setState({ consult, team, loading: false, error: null, missing: consult === null })
-          })
-          .catch((error) => {
+            const domain = value && value.domain && typeof value.domain === 'object' ? value.domain : null
+            setState({
+              consult,
+              team,
+              domain,
+              reportAvailable: Boolean(value && value.reportAvailable === true),
+              loading: false,
+              error: null,
+              missing: consult === null,
+            })
+            const run = consult && consult.run && typeof consult.run === 'object' ? consult.run : null
+            if (run && run.status === 'running') {
+              // Live progress: refresh this consult faster than the list poll.
+              stopTimer()
+              timer = window.setTimeout(() => {
+                void fetchOnce(false)
+              }, RUN_POLL_MS)
+            }
+          } catch (error) {
             if (cancelled || current !== ticket.current) return
             setState((previous) => ({ ...previous, loading: false, error }))
-          })
+          }
+        }
+
+        void fetchOnce(true)
         return () => {
           cancelled = true
+          stopTimer()
         }
       }, [id, revision])
 
@@ -1353,6 +1747,407 @@ window.__ModuleLoader__.load({
               { key: item.mode, className: 'ec-est' },
               h('span', { className: 'ec-est-label' }, item.label),
               h('span', { className: 'ec-est-value' }, item.value),
+            ),
+          ),
+        ),
+      )
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Professional domains: cards, launch form, real-run progress.         */
+    /* ------------------------------------------------------------------ */
+
+    function DomainCard(props) {
+      const t = props.t
+      const lang = props.lang
+      const domain = props.domain
+      const selected = props.selected === true
+      const experts = Array.isArray(domain.experts) ? domain.experts : []
+      const evidence = domain.evidence && typeof domain.evidence === 'object' ? domain.evidence : null
+      const levels = evidence && Array.isArray(evidence.levels) ? evidence.levels : []
+      const required = evidence && Array.isArray(evidence.required) ? evidence.required : []
+      const redFlags = evidence && Array.isArray(evidence.redFlags) ? evidence.redFlags : []
+      const artifacts = Array.isArray(domain.artifacts) ? domain.artifacts : []
+      return h(
+        'button',
+        {
+          type: 'button',
+          className: `ec-domain${selected ? ' ec-domain-on' : ''}`,
+          'aria-pressed': selected,
+          onClick: () => props.onSelect(domain.id),
+        },
+        h(
+          'div',
+          { className: 'ec-domain-head' },
+          h('h3', { className: 'ec-domain-name' }, pickName(lang, domain.name) || domain.id),
+          selected ? h(Chip, { tone: 'info', label: t('selectedLabel') }) : null,
+        ),
+        nonEmpty(domain.tagline) ? h('p', { className: 'ec-domain-tagline' }, domain.tagline) : null,
+        experts.length > 0
+          ? h(
+              'div',
+              { className: 'ec-domain-block' },
+              h('span', { className: 'ec-domain-label' }, t('expertLenses')),
+              h(
+                'div',
+                { className: 'ec-domain-experts' },
+                experts.map((expert) =>
+                  h(
+                    'span',
+                    { key: expert.id || pickName(lang, expert.name), className: 'ec-chip', title: nonEmpty(expert.mandate) ? expert.mandate : '' },
+                    pickName(lang, expert.name) || expert.id,
+                  ),
+                ),
+              ),
+            )
+          : null,
+        levels.length > 0
+          ? h(
+              'div',
+              { className: 'ec-domain-block' },
+              h('span', { className: 'ec-domain-label' }, t('evidenceTitle')),
+              h(
+                'ul',
+                { className: 'ec-evidence' },
+                levels.map((level, index) =>
+                  h(
+                    'li',
+                    { key: level.id || index },
+                    h('span', { className: 'ec-evidence-id' }, nonEmpty(level.id) ? level.id : ''),
+                    nonEmpty(level.label) ? level.label : '',
+                    nonEmpty(level.meaning) ? ` · ${level.meaning}` : '',
+                  ),
+                ),
+              ),
+            )
+          : null,
+        required.length > 0
+          ? h(
+              'div',
+              { className: 'ec-domain-block' },
+              h('span', { className: 'ec-domain-label' }, t('evidenceRequired')),
+              h('div', { className: 'ec-chips' }, required.map((item, index) => h('span', { key: index, className: 'ec-chip' }, item))),
+            )
+          : null,
+        redFlags.length > 0
+          ? h(
+              'div',
+              { className: 'ec-domain-block' },
+              h('span', { className: 'ec-domain-label' }, t('redFlags')),
+              h('div', { className: 'ec-domain-flags' }, redFlags.map((item, index) => h('span', { key: index, className: 'ec-flag' }, item))),
+            )
+          : null,
+        artifacts.length > 0
+          ? h(
+              'div',
+              { className: 'ec-domain-block' },
+              h('span', { className: 'ec-domain-label' }, t('artifactsLabel')),
+              h('ul', { className: 'ec-domain-artifacts' }, artifacts.map((item, index) => h('li', { key: index }, item))),
+            )
+          : null,
+      )
+    }
+
+    function DomainLaunchForm(props) {
+      const t = props.t
+      const domain = props.domain
+      const [question, setQuestion] = React.useState('')
+      const [mode, setMode] = React.useState(domain && MODE_VALUES.includes(domain.defaultMode) ? domain.defaultMode : 'standard')
+      const [pending, setPending] = React.useState(null)
+      const [error, setError] = React.useState(null)
+      const busyRef = React.useRef(false)
+      const questionMin = finite(props.questionMin) ? Math.max(1, Math.trunc(props.questionMin)) : QUESTION_MIN
+      const estimates =
+        domain && domain.team && domain.team.estimates && typeof domain.team.estimates === 'object'
+          ? domain.team.estimates
+          : domain && domain.budget && typeof domain.budget === 'object'
+            ? domain.budget
+            : null
+      const estimate = estimates && finite(estimates[mode]) ? estimates[mode] : null
+      const runAvailable = props.llmAvailable !== false
+      const text = question.trim()
+
+      const submit = async (runNow) => {
+        if (busyRef.current) return
+        if (text.length < questionMin) {
+          setError(t('questionTooShort', { min: questionMin }))
+          return
+        }
+        busyRef.current = true
+        setPending(runNow ? 'run' : 'convene')
+        setError(null)
+        try {
+          await props.onLaunch({ domainId: domain.id, question: text, mode, runNow })
+          setQuestion('')
+        } catch (failure) {
+          setError(t('launchError', { message: describeError(t, failure) }))
+        } finally {
+          busyRef.current = false
+          setPending(null)
+        }
+      }
+
+      return h(
+        'div',
+        { className: 'ec-launch' },
+        h('h3', { className: 'ec-launch-title' }, t('domainLaunchTitle')),
+        h(
+          'div',
+          { className: 'ec-launch-row' },
+          h(
+            'div',
+            { className: 'ec-form-row' },
+            h('label', { className: 'ec-label', htmlFor: 'ec-domain-question' }, t('questionLabel')),
+            h('textarea', {
+              id: 'ec-domain-question',
+              className: 'ec-textarea',
+              rows: 2,
+              value: question,
+              spellCheck: false,
+              placeholder: t('questionPlaceholder'),
+              onChange: (event) => setQuestion(event.target.value),
+            }),
+            h('p', { className: 'ec-hint' }, t('questionMeta', { count: text.length, min: questionMin })),
+          ),
+          h(
+            'div',
+            { className: 'ec-form-row' },
+            h('label', { className: 'ec-label', htmlFor: 'ec-domain-mode' }, t('modeFieldLabel')),
+            h(
+              'select',
+              {
+                id: 'ec-domain-mode',
+                className: 'ec-select',
+                value: mode,
+                onChange: (event) => setMode(event.target.value),
+              },
+              MODE_VALUES.map((value) => h('option', { key: value, value }, dictLabel(t, MODE_KEYS, value, 'unknown'))),
+            ),
+            h(
+              'p',
+              { className: 'ec-hint' },
+              estimate === null ? t('unknown') : t('estimateHint', { cap: formatNumber(estimate) }),
+            ),
+          ),
+        ),
+        h('p', { className: 'ec-hint' }, t('launchHint')),
+        runAvailable ? null : h('p', { className: 'ec-run-warn' }, t('launchRunUnavailable')),
+        error ? h('p', { className: 'ec-form-error', role: 'alert' }, error) : null,
+        h(
+          'div',
+          { className: 'ec-launch-actions' },
+          h(
+            'button',
+            { type: 'button', className: 'ec-btn', disabled: pending !== null, onClick: () => void submit(false) },
+            pending === 'convene' ? t('working') : t('launchConvene'),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'ec-btn ec-btn-primary',
+              disabled: pending !== null || !runAvailable,
+              title: runAvailable ? undefined : t('launchRunUnavailable'),
+              onClick: () => void submit(true),
+            },
+            pending === 'run' ? t('working') : t('launchRun'),
+          ),
+        ),
+      )
+    }
+
+    /** Stage ladder + run counters for one real consult run. */
+    function RunTimeline(props) {
+      const t = props.t
+      const run = props.run && typeof props.run === 'object' ? props.run : null
+      const snapshot = props.snapshot && typeof props.snapshot === 'object' ? props.snapshot : null
+      if (!run && !snapshot) return null
+      const status = run && nonEmpty(run.status) ? run.status : snapshot && nonEmpty(snapshot.status) ? snapshot.status : ''
+      const stage = run && nonEmpty(run.stage) ? run.stage : snapshot && nonEmpty(snapshot.stage) ? snapshot.stage : ''
+      const tokens =
+        run && finite(run.tokens)
+          ? run.tokens
+          : snapshot && snapshot.usage && finite(snapshot.usage.totalTokens)
+            ? snapshot.usage.totalTokens
+            : 0
+      const budget = run && finite(run.budget) ? run.budget : snapshot && finite(snapshot.budget) ? snapshot.budget : 0
+      const duration = run && finite(run.durationMs) ? run.durationMs : 0
+      const provider = run && nonEmpty(run.provider) ? run.provider : snapshot && nonEmpty(snapshot.provider) ? snapshot.provider : ''
+      const model = run && nonEmpty(run.model) ? run.model : snapshot && nonEmpty(snapshot.model) ? snapshot.model : ''
+      const quorum = snapshot && snapshot.quorum && typeof snapshot.quorum === 'object' ? snapshot.quorum : null
+      const warnings = snapshot && Array.isArray(snapshot.warnings) ? snapshot.warnings.filter(nonEmpty).slice(0, 6) : []
+      return h(
+        'div',
+        { className: 'ec-run' },
+        h(
+          'ul',
+          { className: 'ec-stages', 'aria-label': t('stageTitle') },
+          RUN_STAGE_KEYS.map((key, index) => {
+            const state = stageStateOf(props.mode, index, { status, stage })
+            return h(
+              'li',
+              { key, className: `ec-stage${stageStateClass(state)}` },
+              h('span', null, t(key)),
+              h('span', { className: 'ec-mono' }, stageStateLabel(t, state)),
+            )
+          }),
+        ),
+        h(
+          'div',
+          { className: 'ec-run-meta' },
+          status ? h(RunStatusChip, { t, status }) : null,
+          provider || model
+            ? h('span', null, `${t('runProvider')}: `, h('span', { className: 'ec-mono' }, `${provider || '?'} / ${model || '?'}`))
+            : null,
+          h('span', null, `${t('runTokensLabel')}: `, h('span', { className: 'ec-mono' }, formatNumber(tokens))),
+          run && finite(run.experts)
+            ? h('span', null, `${t('runExpertsTitle')}: `, h('span', { className: 'ec-mono' }, formatNumber(run.experts)))
+            : null,
+          h(
+            'span',
+            null,
+            `${t('runBudgetLabel')}: `,
+            h('span', { className: 'ec-mono' }, `${formatNumber(budget)} ${t('tokenUnit')}`),
+          ),
+          duration > 0 ? h('span', null, `${t('runDurationLabel')}: `, h('span', { className: 'ec-mono' }, formatDuration(t, duration))) : null,
+          quorum && finite(quorum.success) && finite(quorum.required)
+            ? h('span', null, t('runQuorum', { success: quorum.success, required: quorum.required }))
+            : null,
+          run && finite(run.failedExperts) && run.failedExperts > 0
+            ? h('span', null, t('runFailedExperts', { count: run.failedExperts }))
+            : null,
+        ),
+        quorum && quorum.ok === false ? h('p', { className: 'ec-run-warn' }, t('runQuorumMissing')) : null,
+        warnings.length > 0
+          ? h('div', { className: 'ec-block' }, warnings.map((warning, index) => h('p', { key: `run-warning-${index}`, className: 'ec-run-warn' }, warning)))
+          : null,
+        run && nonEmpty(run.error)
+          ? h('p', { className: 'ec-run-error' }, `${t('runErrorLabel')}: ${run.error}`)
+          : null,
+      )
+    }
+
+    function collectRunExperts(run, snapshot, rounds) {
+      const byExpert = new Map()
+      const record = (entry) => {
+        if (!entry || typeof entry !== 'object') return
+        const expert = nonEmpty(entry.expert) ? entry.expert : nonEmpty(entry.expertId) ? entry.expertId : ''
+        if (!expert) return
+        const status = nonEmpty(entry.status) ? entry.status : 'ok'
+        const next = {
+          expert,
+          status,
+          tokens: finite(entry.tokens) ? entry.tokens : 0,
+          latencyMs: finite(entry.latencyMs) ? entry.latencyMs : 0,
+        }
+        const previous = byExpert.get(expert)
+        if (!previous || (previous.status !== 'failed' && status === 'failed')) byExpert.set(expert, next)
+        else if (previous.status !== 'failed' && next.tokens > previous.tokens) byExpert.set(expert, { ...previous, tokens: next.tokens })
+      }
+      if (run && Array.isArray(run.experts)) run.experts.forEach(record)
+      if (snapshot && Array.isArray(snapshot.experts)) snapshot.experts.forEach(record)
+      if (byExpert.size === 0 && Array.isArray(rounds)) {
+        for (const round of rounds) {
+          const opinions = round && Array.isArray(round.opinions) ? round.opinions : []
+          for (const opinion of opinions) record({ expert: opinion.expert, status: 'ok', tokens: opinion.tokens })
+        }
+      }
+      return [...byExpert.values()]
+    }
+
+    function RunExpertTable(props) {
+      const t = props.t
+      const lang = props.lang
+      const entries = collectRunExperts(props.run, props.snapshot, props.rounds)
+      if (entries.length === 0) return h('p', { className: 'ec-empty-inline' }, t('runExpertEmpty'))
+      return h(
+        'div',
+        { className: 'ec-expert-table' },
+        entries.map((entry) =>
+          h(
+            'div',
+            { key: entry.expert, className: 'ec-expert-status-row' },
+            h('span', { className: 'ec-expert-status-name', title: entry.expert }, memberName(lang, props.team, entry.expert) || t('unknownExpert')),
+            h(ExpertStatusChip, { t, status: entry.status }),
+            h('span', { className: 'ec-expert-status-meta' }, `${formatNumber(entry.tokens)} ${t('tokenUnit')}`),
+            h('span', { className: 'ec-expert-status-meta' }, entry.latencyMs > 0 ? formatDuration(t, entry.latencyMs) : t('unknown')),
+          ),
+        ),
+      )
+    }
+
+    function ReportModal(props) {
+      const t = props.t
+      const closeRef = React.useRef(null)
+      React.useEffect(() => {
+        const node = closeRef.current
+        if (node && typeof node.focus === 'function') node.focus()
+      }, [])
+      React.useEffect(() => {
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') return
+          event.preventDefault()
+          event.stopImmediatePropagation()
+          props.onClose()
+        }
+        // Capture phase so Esc closes the dialog before the panel's back handler.
+        window.addEventListener('keydown', onKeyDown, true)
+        return () => {
+          window.removeEventListener('keydown', onKeyDown, true)
+        }
+      }, [props.onClose])
+      return h(
+        'div',
+        {
+          className: 'ec-modal-backdrop',
+          role: 'presentation',
+          onClick: props.onClose,
+        },
+        h(
+          'div',
+          {
+            className: 'ec-modal',
+            role: 'dialog',
+            'aria-modal': 'true',
+            'aria-label': t('reportTitle'),
+            onClick: (event) => event.stopPropagation(),
+          },
+          h(
+            'div',
+            { className: 'ec-modal-head' },
+            h('h2', { className: 'ec-modal-title' }, t('reportTitle')),
+            h(
+              'div',
+              { className: 'ec-modal-actions' },
+              props.onDownload ? h('button', { type: 'button', className: 'ec-btn ec-btn-sm', onClick: props.onDownload }, t('reportDownload')) : null,
+              h('button', { type: 'button', className: 'ec-btn ec-btn-sm', ref: closeRef, onClick: props.onClose }, t('reportClose')),
+            ),
+          ),
+          props.loading
+            ? h('p', { className: 'ec-hint' }, t('reportLoading'))
+            : props.error
+              ? h('p', { className: 'ec-form-error', role: 'alert' }, t('reportFailed', { message: props.error }))
+              : h('pre', { className: 'ec-report-text' }, props.text),
+        ),
+      )
+    }
+
+    function EmptyGuide(props) {
+      const t = props.t
+      return h(
+        'div',
+        { className: 'ec-empty' },
+        h('p', { className: 'ec-empty-title' }, t('emptyGuideTitle')),
+        h('p', { className: 'ec-empty-hint' }, t('emptyGuideHint')),
+        h(
+          'ol',
+          { className: 'ec-guide' },
+          [t('emptyGuideStep1'), t('emptyGuideStep2'), t('emptyGuideStep3')].map((step, index) =>
+            h(
+              'li',
+              { key: index, className: 'ec-guide-step' },
+              h('span', { className: 'ec-guide-num' }, String(index + 1)),
+              h('span', null, step),
             ),
           ),
         ),
@@ -1750,6 +2545,7 @@ window.__ModuleLoader__.load({
       const [nameZh, setNameZh] = React.useState(expert && expert.name && nonEmpty(expert.name.zh) ? expert.name.zh : '')
       const [nameEn, setNameEn] = React.useState(expert && expert.name && nonEmpty(expert.name.en) ? expert.name.en : '')
       const [group, setGroup] = React.useState(expert && nonEmpty(expert.group) ? expert.group : GROUP_IDS[0])
+      const [domain, setDomain] = React.useState(expert && nonEmpty(expert.domain) ? expert.domain : '')
       const [mandate, setMandate] = React.useState(expert && nonEmpty(expert.mandate) ? expert.mandate : '')
       const [lens, setLens] = React.useState(expert && nonEmpty(expert.lens) ? expert.lens : '')
       const [asks, setAsks] = React.useState(expert && Array.isArray(expert.asks) ? expert.asks.join('\n') : '')
@@ -1815,6 +2611,7 @@ window.__ModuleLoader__.load({
             id: targetId,
             name: { zh: nameZh.trim(), en: nameEn.trim() || nameZh.trim() },
             group,
+            domain: nonEmpty(domain) ? domain : null,
             mandate: mandate.trim(),
             lens: lens.trim(),
             asks: linesToArray(asks),
@@ -1880,6 +2677,17 @@ window.__ModuleLoader__.load({
                 { className: 'ec-select', value: group, onChange: (event) => setGroup(event.target.value) },
                 groupOptions(props.protocol, lang).map((option) =>
                   h('option', { key: option.id, value: option.id }, option.label),
+                ),
+              ),
+            ),
+            row(
+              t('expertDomainLabel'),
+              h(
+                'select',
+                { className: 'ec-select', value: domain, onChange: (event) => setDomain(event.target.value) },
+                h('option', { value: '' }, t('expertDomainNone')),
+                (Array.isArray(props.domains) ? props.domains : []).map((item) =>
+                  h('option', { key: item.id, value: item.id }, pickName(lang, item.name) || item.id),
                 ),
               ),
             ),
@@ -1991,9 +2799,14 @@ window.__ModuleLoader__.load({
       const t = props.t
       const lang = props.lang
       const experts = Array.isArray(props.experts) ? props.experts : []
+      const domains = Array.isArray(props.domains) ? props.domains : []
       const [confirmId, setConfirmId] = React.useState(null)
       const [pendingId, setPendingId] = React.useState(null)
       const [error, setError] = React.useState(null)
+      const domainNameFor = (domainId) => {
+        const domain = domains.find((item) => item && item.id === domainId)
+        return domain ? pickName(lang, domain.name) || domain.id : domainId
+      }
 
       const runDelete = async (expert) => {
         if (nonEmpty(pendingId)) return
@@ -2043,7 +2856,11 @@ window.__ModuleLoader__.load({
                     'div',
                     { className: 'ec-expert-name' },
                     h('span', { className: 'ec-expert-title', title: name }, name),
-                    h('span', { className: 'ec-expert-sub' }, `${expert.id} · ${groupLabelFor(lang, props.protocol, expert.group)}`),
+                    h(
+                      'span',
+                      { className: 'ec-expert-sub' },
+                      `${expert.id} · ${groupLabelFor(lang, props.protocol, expert.group)}${nonEmpty(expert.domain) ? ` · ${domainNameFor(expert.domain)}` : ''}`,
+                    ),
                     h(EntityBadges, { t, entity: expert }),
                   ),
                   h('p', { className: 'ec-expert-mandate' }, nonEmpty(expert.mandate) ? expert.mandate : t('unknown')),
@@ -2307,21 +3124,26 @@ window.__ModuleLoader__.load({
       const lang = props.lang
       const consults = Array.isArray(props.consults) ? props.consults.filter((item) => item && typeof item === 'object') : []
       const teams = Array.isArray(props.teams) ? props.teams : []
+      const domains = Array.isArray(props.domains) ? props.domains : []
       const teamNameFor = (teamId) => {
         const team = teams.find((item) => item && item.id === teamId)
         return team ? pickName(lang, team.name) || teamId : teamId
       }
+      const domainFor = (domainId) => (nonEmpty(domainId) ? domains.find((item) => item && item.id === domainId) || null : null)
       return h(
         'section',
         { className: 'ec-section' },
         h(SectionHeader, { title: t('recentConsults'), count: consults.length, desc: t('consultsDesc') }),
         consults.length === 0
-          ? h('p', { className: 'ec-empty-inline' }, t('recentEmpty'))
+          ? h(EmptyGuide, { t })
           : h(
               'div',
               { className: 'ec-consult-list' },
-              consults.slice(0, 20).map((consult) =>
-                h(
+              consults.slice(0, 20).map((consult) => {
+                const domain = domainFor(consult.domainId)
+                const runStatus = nonEmpty(consult.runStatus) ? consult.runStatus : null
+                const reportReady = runStatus === 'finished'
+                return h(
                   'button',
                   {
                     key: consult.id,
@@ -2333,7 +3155,13 @@ window.__ModuleLoader__.load({
                   h(
                     'span',
                     { className: 'ec-consult-main' },
-                    h('span', { className: 'ec-consult-team' }, teamNameFor(consult.teamId)),
+                    h(
+                      'span',
+                      { className: 'ec-consult-chips' },
+                      domain ? h(Chip, { dot: false, label: pickName(lang, domain.name) || domain.id }) : null,
+                      runStatus ? h(RunStatusChip, { t, status: runStatus }) : null,
+                      h('span', { className: 'ec-consult-team' }, teamNameFor(consult.teamId)),
+                    ),
                     h('span', { className: 'ec-consult-question' }, excerpt(consult.question, 140) || t('unknown')),
                     h(
                       'span',
@@ -2345,10 +3173,11 @@ window.__ModuleLoader__.load({
                     'span',
                     { className: 'ec-consult-meta' },
                     `${t('roundsCount', { count: finite(consult.roundCount) ? consult.roundCount : 0 })} · ${formatNumber(consult.tokens)} ${t('tokenUnit')}`,
+                    reportReady ? h('span', { className: 'ec-consult-report' }, t('reportMarker')) : null,
                   ),
                   h('span', { className: 'ec-consult-time' }, timestampOf(consult.updatedAt || consult.createdAt) ? dateTimeText(timestampOf(consult.updatedAt || consult.createdAt)) : t('unknown')),
-                ),
-              ),
+                )
+              }),
             ),
       )
     }
@@ -2782,18 +3611,34 @@ window.__ModuleLoader__.load({
       const state = useConsultDetail(props.id, props.revision)
       const consult = state.consult
       const team = state.team || props.team || null
+      const domain = state.domain || props.domain || null
+      const reportAvailable = state.reportAvailable === true || props.reportAvailable === true
+      const runSnapshot = props.runSnapshot && typeof props.runSnapshot === 'object' ? props.runSnapshot : null
       const [pending, setPending] = React.useState(false)
       const [error, setError] = React.useState(null)
       const [notice, setNotice] = React.useState(null)
+      const [runPending, setRunPending] = React.useState(null)
+      const [runError, setRunError] = React.useState(null)
+      const [reportOpen, setReportOpen] = React.useState(false)
+      const [reportLoading, setReportLoading] = React.useState(false)
+      const [reportError, setReportError] = React.useState(null)
+      const [reportText, setReportText] = React.useState('')
       const busyRef = React.useRef(false)
       const onArchive = props.onArchive
       const onBack = props.onBack
+      const onRefresh = props.onRefresh
 
       React.useEffect(() => {
         busyRef.current = false
         setPending(false)
         setError(null)
         setNotice(null)
+        setRunPending(null)
+        setRunError(null)
+        setReportOpen(false)
+        setReportLoading(false)
+        setReportError(null)
+        setReportText('')
       }, [props.id])
 
       const archive = async () => {
@@ -2813,6 +3658,70 @@ window.__ModuleLoader__.load({
         }
       }
 
+      const startRealRun = async () => {
+        if (busyRef.current || !props.onStartRun) return
+        busyRef.current = true
+        setRunPending('start')
+        setRunError(null)
+        try {
+          await props.onStartRun(props.id)
+          if (onRefresh) await onRefresh()
+        } catch (failure) {
+          setRunError(t('launchError', { message: describeError(t, failure) }))
+        } finally {
+          busyRef.current = false
+          setRunPending(null)
+        }
+      }
+
+      const cancelRealRun = async () => {
+        if (busyRef.current || !props.onCancelRun) return
+        busyRef.current = true
+        setRunPending('cancel')
+        setRunError(null)
+        try {
+          await props.onCancelRun(props.id)
+          setNotice(t('cancelRunDone'))
+          if (onRefresh) await onRefresh()
+        } catch (failure) {
+          setRunError(t('cancelRunFailed', { message: describeError(t, failure) }))
+        } finally {
+          busyRef.current = false
+          setRunPending(null)
+        }
+      }
+
+      const requireReportText = async () => {
+        if (nonEmpty(reportText)) return reportText
+        const text = await apiGetText(API_REPORT, { id: props.id })
+        setReportText(text)
+        return text
+      }
+
+      const openReport = async () => {
+        setReportOpen(true)
+        setReportError(null)
+        if (nonEmpty(reportText)) return
+        setReportLoading(true)
+        try {
+          await requireReportText()
+        } catch (failure) {
+          setReportError(describeError(t, failure))
+        } finally {
+          setReportLoading(false)
+        }
+      }
+
+      const downloadReport = async () => {
+        try {
+          const text = await requireReportText()
+          downloadMarkdown(`${props.id}-report.md`, text)
+        } catch (failure) {
+          setReportError(describeError(t, failure))
+          setReportOpen(true)
+        }
+      }
+
       const headConsult = consult || null
       const question = headConsult ? headConsult.question : ''
       const context = headConsult ? headConsult.context : ''
@@ -2820,6 +3729,81 @@ window.__ModuleLoader__.load({
       const verdict = headConsult && headConsult.verdict && typeof headConsult.verdict === 'object' ? headConsult.verdict : null
       const disagreements = headConsult && Array.isArray(headConsult.disagreements) ? headConsult.disagreements : []
       const rounds = headConsult && Array.isArray(headConsult.rounds) ? headConsult.rounds : []
+      const run = headConsult && headConsult.run && typeof headConsult.run === 'object' ? headConsult.run : null
+      const runRunning = Boolean(run && run.status === 'running')
+      const domainArtifacts = domain && Array.isArray(domain.artifacts) ? domain.artifacts.filter(nonEmpty) : []
+      const artifactNotes = verdict && Array.isArray(verdict.artifactNotes) ? verdict.artifactNotes.filter(nonEmpty) : []
+      const artifactsBlock =
+        verdict && domainArtifacts.length > 0
+          ? h(
+              'div',
+              { className: 'ec-block' },
+              h('span', { className: 'ec-lens-label' }, t('artifactsLabel')),
+              h(
+                'ul',
+                { className: 'ec-artifacts' },
+                domainArtifacts.map((item, index) =>
+                  h(
+                    'li',
+                    { key: `artifact-${index}`, className: 'ec-artifact ec-artifact-on' },
+                    h('span', { className: 'ec-artifact-box' }, '✓'),
+                    h('span', null, item),
+                    h('span', { className: 'ec-artifact-status' }, t('artifactDelivered')),
+                  ),
+                ),
+              ),
+              artifactNotes.length > 0
+                ? h(
+                    'div',
+                    { className: 'ec-block' },
+                    h('span', { className: 'ec-lens-label' }, t('artifactNotes')),
+                    h('ul', { className: 'ec-bullets' }, artifactNotes.map((item, index) => h('li', { key: `artifact-note-${index}` }, item))),
+                  )
+                : null,
+            )
+          : null
+      const reportBar =
+        reportAvailable && verdict
+          ? h(
+              'div',
+              { className: 'ec-report-bar' },
+              h('button', { type: 'button', className: 'ec-btn ec-btn-sm', onClick: () => void openReport() }, t('reportView')),
+              h('button', { type: 'button', className: 'ec-btn ec-btn-sm', onClick: () => void downloadReport() }, t('reportDownload')),
+            )
+          : null
+      const runBody = headConsult
+        ? h(
+            'div',
+            { className: 'ec-run' },
+            run || runSnapshot
+              ? h(RunTimeline, { t, mode: headConsult.mode, run, snapshot: runSnapshot })
+              : h('p', { className: 'ec-empty-inline' }, t('runIdleHint')),
+            h(
+              'div',
+              { className: 'ec-report-bar' },
+              headConsult.status === 'open' && !run && !props.runtimeUnavailable
+                ? h(
+                    'button',
+                    { type: 'button', className: 'ec-btn ec-btn-primary ec-btn-sm', disabled: runPending !== null, onClick: () => void startRealRun() },
+                    runPending === 'start' ? t('working') : t('launchRun'),
+                  )
+                : null,
+              runRunning
+                ? h(
+                    'button',
+                    { type: 'button', className: 'ec-btn ec-btn-danger ec-btn-sm', disabled: runPending !== null, onClick: () => void cancelRealRun() },
+                    runPending === 'cancel' ? t('canceling') : t('cancelRun'),
+                  )
+                : null,
+              headConsult.status === 'open' && !run && props.runtimeUnavailable
+                ? h('span', { className: 'ec-hint ec-hint-warn' }, t('launchRunUnavailable'))
+                : null,
+            ),
+            runError ? h('p', { className: 'ec-form-error', role: 'alert' }, runError) : null,
+            h('span', { className: 'ec-lens-label' }, t('runExpertsTitle')),
+            h(RunExpertTable, { t, lang, team, run, snapshot: runSnapshot, rounds }),
+          )
+        : null
 
       let pendingBody = null
       if (!headConsult) {
@@ -2900,6 +3884,8 @@ window.__ModuleLoader__.load({
                   h('ul', { className: 'ec-bullets' }, verdict.actions.map((item, index) => h('li', { key: `action-${index}` }, item))),
                 )
               : null,
+            artifactsBlock,
+            reportBar,
           )
         : h('p', { className: 'ec-empty-inline' }, t('noVerdict'))
 
@@ -3008,6 +3994,10 @@ window.__ModuleLoader__.load({
             { className: 'ec-detail-meta' },
             headConsult ? h(StatusChip, { t, status: headConsult.status }) : null,
             headConsult ? h(ModeChip, { t, mode: headConsult.mode }) : null,
+            domain
+              ? h(Chip, { dot: false, tone: 'info', label: t('domainLabel'), value: pickName(lang, domain.name) || domain.id })
+              : null,
+            run && nonEmpty(run.status) ? h(RunStatusChip, { t, status: run.status }) : null,
             h('span', { className: 'ec-mono', title: props.id }, props.id),
             headConsult && finite(headConsult.createdAt)
               ? h('span', { className: 'ec-mono' }, t('createdAt', { time: dateTimeText(headConsult.createdAt) }))
@@ -3032,9 +4022,10 @@ window.__ModuleLoader__.load({
                 h('p', { className: 'ec-raw' }, nonEmpty(question) ? question : t('unknown')),
                 nonEmpty(context) ? h('p', { className: 'ec-context' }, context) : h('p', { className: 'ec-empty-inline' }, t('contextEmpty')),
               ),
-              h(Section, { index: '02', title: t('sectionVerdict') }, verdictBody),
-              h(Section, { index: '03', title: t('sectionDisagreements'), aside: String(disagreements.length) }, disagreementsBody),
-              h(Section, { index: '04', title: t('sectionRounds'), aside: String(rounds.length) }, roundsBody),
+              h(Section, { index: '02', title: t('runTitle') }, runBody),
+              h(Section, { index: '03', title: t('sectionVerdict') }, verdictBody),
+              h(Section, { index: '04', title: t('sectionDisagreements'), aside: String(disagreements.length) }, disagreementsBody),
+              h(Section, { index: '05', title: t('sectionRounds'), aside: String(rounds.length) }, roundsBody),
               headConsult.status !== 'archived'
                 ? h(
                     'div',
@@ -3054,6 +4045,18 @@ window.__ModuleLoader__.load({
                 : h('p', { className: 'ec-empty-inline' }, t('archiveDone')),
             )
           : null,
+        reportOpen
+          ? h(ReportModal, {
+              t,
+              text: reportText,
+              loading: reportLoading,
+              error: reportError,
+              onClose: () => setReportOpen(false),
+              onDownload: () => {
+                void downloadReport()
+              },
+            })
+          : null,
       )
     }
 
@@ -3070,6 +4073,10 @@ window.__ModuleLoader__.load({
       const payload = council.data && typeof council.data === 'object' ? council.data : null
       const teams = React.useMemo(() => (payload && Array.isArray(payload.teams) ? payload.teams.filter((team) => team && typeof team === 'object') : []), [payload])
       const experts = React.useMemo(() => (payload && Array.isArray(payload.experts) ? payload.experts.filter((expert) => expert && typeof expert === 'object') : []), [payload])
+      const domains = React.useMemo(() => (payload && Array.isArray(payload.domains) ? payload.domains.filter((domain) => domain && typeof domain === 'object') : []), [payload])
+      const runtime = payload && payload.runtime && typeof payload.runtime === 'object' ? payload.runtime : null
+      const runtimeAvailable = !runtime || runtime.llmAvailable !== false
+      const activeRuns = runtime && Array.isArray(runtime.activeRuns) ? runtime.activeRuns.filter((item) => item && typeof item === 'object') : []
       const protocol = payload && payload.protocol && typeof payload.protocol === 'object' ? payload.protocol : null
       const consults = payload && Array.isArray(payload.consults) ? payload.consults : []
       const customization = payload && payload.customization && typeof payload.customization === 'object' ? payload.customization : null
@@ -3090,6 +4097,7 @@ window.__ModuleLoader__.load({
       }
       const [view, setView] = React.useState({ kind: 'list' })
       const [consultRevision, setConsultRevision] = React.useState(0)
+      const [selectedDomainId, setSelectedDomainId] = React.useState('')
       const [flash, setFlash] = React.useState(null)
       const [resetConfirm, setResetConfirm] = React.useState(false)
       const [resetPending, setResetPending] = React.useState(false)
@@ -3205,6 +4213,52 @@ window.__ModuleLoader__.load({
         [refreshAll],
       )
 
+      /** Domain launch: file the consult, and optionally start the real run immediately. */
+      const conveneDomain = React.useCallback(
+        async (form) => {
+          const body = {
+            action: 'convene',
+            domainId: form.domainId,
+            question: form.question,
+            mode: form.mode,
+          }
+          const result = await apiPost(body)
+          const consultId = result && nonEmpty(result.consultId) ? result.consultId : ''
+          if (!consultId) throw councilError('errorUnexpected')
+          if (form.runNow) {
+            try {
+              await apiPost({ action: 'run', id: consultId })
+            } catch (failure) {
+              // The consult was filed; keep it visible even when the run cannot start.
+              await refreshAll()
+              throw failure
+            }
+          }
+          await refreshAll()
+          openConsult(consultId)
+          return { consultId }
+        },
+        [refreshAll, openConsult],
+      )
+
+      const startRun = React.useCallback(
+        async (consultId) => {
+          const result = await apiPost({ action: 'run', id: consultId })
+          await refreshAll()
+          return result
+        },
+        [refreshAll],
+      )
+
+      const cancelRun = React.useCallback(
+        async (consultId) => {
+          const result = await apiPost({ action: 'cancel-run', id: consultId })
+          await refreshAll()
+          return result
+        },
+        [refreshAll],
+      )
+
       const saveTeamEntity = React.useCallback(
         async (payload) => {
           const result = await apiPost({ action: 'save-team', team: payload })
@@ -3291,6 +4345,8 @@ window.__ModuleLoader__.load({
       const selectedTeam = view.kind === 'team' ? teams.find((team) => team.id === view.teamId) || null : null
       const editingTeam = view.kind === 'team-edit' && nonEmpty(view.teamId) ? teams.find((team) => team.id === view.teamId) || null : null
       const editingExpert = view.kind === 'expert-edit' && nonEmpty(view.expertId) ? experts.find((expert) => expert.id === view.expertId) || null : null
+      const selectedDomain = nonEmpty(selectedDomainId) ? domains.find((domain) => domain.id === selectedDomainId) || null : null
+      const activeRunSnapshot = view.kind === 'consult' ? activeRuns.find((item) => item.consultId === view.id) || null : null
       const showList =
         view.kind === 'list' ||
         (view.kind === 'team' && !selectedTeam) ||
@@ -3301,11 +4357,47 @@ window.__ModuleLoader__.load({
         React.Fragment,
         null,
         h(ConsentNotice, { t, policy }),
+        runtimeAvailable ? null : h('div', { className: 'ec-notice ec-notice-warn', role: 'status' }, h('span', null, t('runtimeWarning'))),
         h(
           'section',
           { className: 'ec-section' },
           h(SectionHeader, { title: t('overviewTitle'), desc: t('overviewDesc') }),
           h(StatsRow, { t, stats }),
+        ),
+        h(
+          'section',
+          { className: 'ec-section' },
+          h(SectionHeader, { title: t('domainsTitle'), count: domains.length, desc: t('domainsDesc') }),
+          domains.length === 0
+            ? h('p', { className: 'ec-empty-inline' }, t('domainEmpty'))
+            : h(
+                React.Fragment,
+                null,
+                h(
+                  'div',
+                  { className: 'ec-domains' },
+                  domains.map((domain) =>
+                    h(DomainCard, {
+                      key: domain.id,
+                      t,
+                      lang,
+                      domain,
+                      selected: Boolean(selectedDomain) && selectedDomain.id === domain.id,
+                      onSelect: setSelectedDomainId,
+                    }),
+                  ),
+                ),
+                selectedDomain
+                  ? h(DomainLaunchForm, {
+                      key: selectedDomain.id,
+                      t,
+                      domain: selectedDomain,
+                      questionMin,
+                      llmAvailable: runtimeAvailable,
+                      onLaunch: conveneDomain,
+                    })
+                  : null,
+              ),
         ),
         h(
           'section',
@@ -3372,7 +4464,7 @@ window.__ModuleLoader__.load({
                 ),
               ),
         ),
-        h(RecentConsults, { t, lang, consults, teams, onOpen: openConsult }),
+        h(RecentConsults, { t, lang, consults, teams, domains, onOpen: openConsult }),
       )
 
       let detail = null
@@ -3412,6 +4504,7 @@ window.__ModuleLoader__.load({
           t,
           lang,
           experts,
+          domains,
           protocol,
           onBack: back,
           onNew: () => openExpertEditor(),
@@ -3424,6 +4517,7 @@ window.__ModuleLoader__.load({
           t,
           lang,
           expert: nonEmpty(view.expertId) ? editingExpert : null,
+          domains,
           protocol,
           onSave: saveExpertEntity,
           onSaved: () => setView({ kind: 'experts' }),
@@ -3436,9 +4530,15 @@ window.__ModuleLoader__.load({
           id: view.id,
           revision: consultRevision,
           team: null,
+          reportAvailable: false,
+          runSnapshot: activeRunSnapshot,
+          runtimeUnavailable: !runtimeAvailable,
           onBack: back,
           onRetry: refreshAll,
+          onRefresh: refreshAll,
           onArchive: archiveConsult,
+          onStartRun: startRun,
+          onCancelRun: cancelRun,
         })
       }
 

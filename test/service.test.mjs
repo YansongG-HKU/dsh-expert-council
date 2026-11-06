@@ -201,8 +201,8 @@ test('the ledger survives a reload and list summaries stay compact', async () =>
     assert.equal(summaries[0].opinionCount, 2)
     assert.equal(typeof summaries[0].tokens, 'number')
     const state = await reloaded.state()
-    assert.equal(state.teams.length, 8)
-    assert.ok(state.experts.length >= 12)
+    assert.equal(state.teams.length, 14)
+    assert.ok(state.experts.length >= 44)
     assert.equal(state.stats.total, 1)
   } finally {
     await dispose()

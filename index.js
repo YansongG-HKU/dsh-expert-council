@@ -34,14 +34,16 @@ const PROMPT_SECTION = [
   'Use `expert_council` only when the user explicitly asks for 专家团 / 专家会诊 / Expert Council by name, or when the user',
   'started a consult with `/experts` or the sidebar panel. A model-initiated convene is refused unless it carries',
   'explicit_request:true plus request_quote (the user\'s own words). Do not suggest a panel for ordinary work.',
-  'When invoked: teams → convene → record → verdict, follow the brief, record dissent honestly, report verdict + strongest',
-  'dissent + reversal triggers (never the whole brief).',
+  'When invoked: domains → convene → run → report. `action=run` is a REAL panel: the Host calls the model once per expert in',
+  'parallel, cross-examines only proven disagreements, optionally adds anonymous peer review (deep), and a chair writes the',
+  'verdict; the result is a durable report. Use it for any decision that deserves a professional panel; poll run_status for',
+  'long runs and report verdict + strongest dissent + reversal triggers (never the whole report).',
   'The user does not need to know the config: if they describe in plain language how to adjust the panel (add an expert,',
   'change a team, rename a lens), call expert_council({action:"customize", request:"<their words>"}) to get a field-level brief,',
   'then apply it with save_expert / save_team / delete (each with request_quote). Only when the user asks.',
-  'Boundary: this is NOT the built-in Agent Teams — it never spawns teammates, never uses spawn_teammate / team_task_*,',
-  'and its "teams" are expert lenses only. The user can customise experts and team composition from the panel; save only',
-  'when the user asks.',
+  'Professional domains: finance, legal, healthcare, engineering, research, security — each ships a domain panel with domain',
+  'experts, evidence levels, red flags and artifacts. Boundary: this is NOT the built-in Agent Teams — it never spawns',
+  'teammates, never uses spawn_teammate / team_task_*, and its "teams" are expert lenses plus a protocol.',
 ].join(' ')
 
 export function apply(ctx, config) {
@@ -58,7 +60,11 @@ export function apply(ctx, config) {
   const service = createExpertCouncilService({
     store,
     log,
-    config: { requireExplicitConsent: config?.requireExplicitConsent !== false },
+    ctx,
+    config: {
+      requireExplicitConsent: config?.requireExplicitConsent !== false,
+      ...(config?.run && typeof config.run === 'object' ? config.run : {}),
+    },
   })
 
   // Model-facing tool. Failure must not stop the rest of the plugin from mounting.

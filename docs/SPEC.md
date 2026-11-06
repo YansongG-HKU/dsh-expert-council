@@ -187,3 +187,40 @@ customization.json 写入 + history 记一条（谁、什么动作、原话、�
 - [x] 变更历史：每次保存/删除/重置记 history（谁、动作、原话、影响）
 - [x] 与内置 Agent Teams 零命名碰撞、零调用、不创建子代理
 - [x] 测试覆盖门禁、预算、命令、工具、面板、自定义、隔离、自然语言路径
+
+## 7. V0.4 真实会诊（real panel execution）
+
+### 7.1 执行器（lib/executor.js）
+
+- 每位专家一次独立 `llm.prepareCall → stream` 调用，互不可见；`maxParallel` 默认 4。
+- 仅当检测到 stance/confidence 分歧时，对最多 4 位涉及专家做交叉质询并写回第 2 轮修订。
+- `deep` 追加匿名同行评议（最多 4 位），再进入主持裁决。
+- 主持输出契约：`decision/confidence/rationale/dissent/unresolved/reversalTriggers/actions/artifactNotes`；存在分歧而 dissent 为空会触发一次强制修复。
+- 失败路径：单次调用超时/重试 → 专家记 failed；成功数低于法定人数（ceil(N/2)）则整轮失败并保留 open 状态；主持 JSON 不可解析 → 先抢救截断字段，再退回按意见统计的降级裁决（报告标注需人工复核）。
+- 推理模型适配：finish=max-tokens 且无可见文本时自动提高输出额度并降低推理强度重试一次。
+
+### 7.2 领域包（lib/domains.js）
+
+`finance / legal / healthcare / engineering / research / security`；每包 5 位专家、证据等级阶梯、必须核验项、红旗、交付物、三档预算；团队 id `<domain>-review`，恰好一个主持。
+
+### 7.3 数据与接口
+
+- 台账 `consult.run` 额外保存 `provider/model/tokens/budget/durationMs/experts/failedExperts/expertStatuses/reportPath/error`。
+- `runs/<runId>.json` 完整转录；`runs/<runId>.md` 8 节报告。
+- 工具动作新增：`domains` / `run`（id 或 domain+question，`wait` 可 false）/ `run_status` / `cancel_run` / `report`。
+- 面板新增：`GET /expert-council/api/report?id=`（text/markdown）、`POST action=run|cancel-run`、state 返回 `domains` 与 `runtime{llmAvailable,activeRuns,config}`。
+- 命令新增：`/experts domains`、`/experts run <领域|团队> <问题>`。
+
+### 7.4 V0.4 质量清单
+
+- [x] 真实并行：每位专家一次独立调用，`maxActive > 1` 有测试断言
+- [x] 交叉质询只在有分歧时触发，且只针对涉及专家
+- [x] 主持强制回应分歧（dissent 修复）
+- [x] 法定人数不足 → 明确失败且会诊保持 open
+- [x] 取消 → AbortController 中断、run 记为 canceled、会诊可重试
+- [x] 主持输出截断 → 抢救/降级，不丢失整次会诊
+- [x] 推理模型空输出 → 自动加预算重试
+- [x] 8 节报告落盘，含专家表、分歧、异议、推翻条件、交付物核对、运行明细
+- [x] `consult.run.expertStatuses` 与 `reportAvailable` 持久化
+- [x] 领域包进入 brief / 专家 system prompt / 报告核对表
+- [x] 与 Agent Teams 的对照与评分见 `docs/BENCHMARK.md`
