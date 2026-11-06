@@ -1,6 +1,6 @@
 {
   "name": "dsh-expert-council",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "User-gated expert panels for DSH: describe adjustments in plain language, editable experts and team composition, explicit-use consent, isolation from built-in Agent Teams, evidence-first protocol, token budgets and a queryable decision ledger.",
   "license": "MIT",
   "author": "YansongG-HKU",
@@ -64,6 +64,7 @@
     "manifestVersion": 1
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22",
+    "dsh": ">=0.2.2-rc.1"
   }
 }

@@ -3,6 +3,17 @@
 All notable changes to `dsh-expert-council` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.3.1] — 2026-11-06
+
+### Changed
+
+- **DSH 0.2.2-rc.1 compatibility.** Declared `engines.dsh: ">=0.2.2-rc.1"`; README states the verified compatibility line.
+- No behavioural change: `tools.register`, `systemPrompt.section`, `commands.register`, `webServer.register`, `slots` and `locale` are unchanged in 0.2.2-rc.1.
+
+### Verified
+
+- 37/37 tests pass; the `expert_council` tool, `/experts` command and sidebar panel register on the live 0.2.2-rc.1 desktop runtime.
+
 ## [0.3.0] — 2026-11-05
 
 ### Added

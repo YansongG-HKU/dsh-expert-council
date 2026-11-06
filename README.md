@@ -10,6 +10,8 @@
 
 DeepSeek Harness 插件（MIT 开源）：https://github.com/YansongG-HKU/dsh-expert-council
 
+> **兼容性（DSH 0.2.2-rc.1）**：只读了 0.2.2 的公开接口变更（tools / systemPrompt / commands / webServer / slots / locale）并逐条核对，无破坏性变化；37/37 测试通过，真实桌面运行时正常注册 `expert_council` 工具、`/experts` 命令与面板。
+
 Host 拥有专家镜头名册、用户自定义层、合作规范、token 预算与决策台账；Client 提供侧边栏面板与详情页；模型侧有一个工具 `expert_council`，人类侧有一条命令 `/experts`。三者写同一份台账。
 
 **三条硬规则：** ① 只在你明确呼叫时使用（模型不得主动召开，工具层会拒绝）；② 专家角色与团队构成可以随时改、改完即时生效、可重置；③ 与 DSH 自带的智能体团队（Agent Teams）完全隔离，不共用名字、不创建子代理。
