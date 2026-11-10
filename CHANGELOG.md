@@ -3,7 +3,7 @@
 All notable changes to `dsh-expert-council` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [0.5.1] — 2026-11-10
 
 - 同一 Host 的会诊台账变更按顺序原子落盘，成功后才更新内存。写入失败会返回错误，损坏的旧账本保留供恢复。见 [#1](https://github.com/YansongG-HKU/dsh-expert-council/issues/1)。
 
