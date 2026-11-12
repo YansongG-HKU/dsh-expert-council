@@ -36,7 +36,7 @@ Domain packs (finance/legal/healthcare/engineering/research/security) are **lens
 | Chair verdict | A chair model receives anonymised opinions, disagreements and cross-exam summaries, and must return `decision/confidence/rationale/dissent/unresolved/reversalTriggers/actions`; ignoring a proven disagreement forces a rewrite |
 | Dissent on record | Verdicts carry `dissent / unresolved / reversalTriggers / actions`; the report has dedicated "dissent (not flattened)" and "reversal triggers" sections |
 | Evidence gate | Every claim needs `evidence`; unevidenced claims are downgraded to assumptions and the report checks against the domain's evidence standards |
-| Robustness | Per-call timeout, retry, JSON contract and one repair retry; a truncated chair reply is salvaged from its own fields, then a statistical "degraded verdict" is used and explicitly marked for human review; reasoning-only empty replies automatically retry with a bigger output budget |
+| Robustness | Per-call timeout, retry, JSON contract and one repair retry; a truncated chair reply is salvaged from its own fields, then a statistical "degraded verdict" is used and explicitly marked for human review; reasoning-only empty replies automatically retry with a bigger output budget; run failures such as `QUORUM_FAILED` name the provider/model and the remediation |
 | Observability | Stage timeline (independent → cross-exam → peer review → verdict), per-expert status/latency/tokens, quorum, failed experts, over-budget and degradation warnings; `run_status` polling and `cancel_run` |
 | Report | 8-section Markdown report saved as `runs/<runId>.md` (decision, expert table, disagreements, dissent, unresolved/reversal, actions, domain artifact checklist, run detail); readable via `action=report`, the panel, or `GET /expert-council/api/report?id=` |
 | Task mode | `intent=task`: every expert ships a complete artifact, the integrator merges one final deliverable; report contains the final result, division of labor, per-expert artifacts, assumptions, risks and next steps |
@@ -88,7 +88,8 @@ Domain team ids are `<domain>-review` (e.g. `finance-review`). Eight general-pur
 
 - Only the chosen team's lenses are rendered into the brief.
 - Three depths: `lean` (one chair synthesis call, ~34% of the standard budget), `standard` (N independent calls + one cross-exam round + chair), `deep` (plus anonymous peer review, ~2.6×).
-- Per expert output budget ≥1200 tokens and chair ≥3500 (reasoning tokens count); run summaries record real input/output/reasoning tokens and per-expert latency; over-budget is a warning, the report shows actual usage.
+- Per expert output budget ≥1200 tokens on a normal route (≥2400 and cross-exam ≥1800 when reasoning), chair ≥3500 (reasoning tokens count); run summaries record real input/output/reasoning tokens and per-expert latency; over-budget is a warning, the report shows actual usage.
+- Route and timeout: `run` follows the calling session's provider/model (`exec.agent.model.current()`, so switching the session model switches the panel; the Harness default is only a fallback). The per-call timeout is 90s by default, 180s on a reasoning route (`reasoningEffort` present and not `off`), and an explicit `call_timeout_ms` / `callTimeoutMs` always wins; use `max_parallel:1` on a single-slot self-hosted endpoint.
 - `budget_cap` overrides the whole-consult cap (200–20000); `max_parallel`, `call_timeout_ms`, `wait_ms` are configurable.
 - Default advice: lean for routine reviews, standard for real decisions, deep only for irreversible/high-cost ones.
 
@@ -112,10 +113,10 @@ After enabling: 「专家团」 appears in the sidebar, `/experts` is available,
 
 ```bash
 node --check index.js
-node --test "test/*.test.mjs"   # 62/62
+node --test "test/*.test.mjs"   # 76/76
 ```
 
-`test/run.test.mjs` covers the real orchestration with a scripted fake LLM: parallel independence, JSON repair, quorum, cancellation, forced-dissent repair, lean mode, report persistence, tool wiring, domain metadata, empty-output retry, truncated-chair salvage, degraded verdict and domain persistence.
+`test/run.test.mjs` covers the real orchestration with a scripted fake LLM: parallel independence, JSON repair, quorum, cancellation, forced-dissent repair, lean mode, report persistence, tool wiring, domain metadata, empty-output retry, truncated-chair salvage, degraded verdict and domain persistence. `test/routing.test.mjs` covers session-route priority, reasoning/off stage budgets, call-timeout selection and failure diagnostics.
 
 ## Boundaries
 
@@ -126,6 +127,7 @@ node --test "test/*.test.mjs"   # 62/62
 
 ## Version
 
+- `0.5.2`: runs follow the session model route (`exec.agent.model.current()`), reasoning-route output floors for expert/cross-exam/chair calls, route-aware call timeout (90s/180s), and `QUORUM_FAILED` diagnostics with provider/model + remediation.
 - `0.5.0`: task mode (parallel artifacts + merged deliverable), no task boundaries, lens baselines, task report.
 - `0.4.0`: real panel execution, 6 professional lens baselines, durable reports, run progress/cancel/degradation, reasoning-model adaptation.
 - `0.3.0`: plain-language customisation, editable experts/teams.

@@ -33,7 +33,7 @@ Host 拥有专家镜头名册与 6 个专业领域包、用户自定义层、合
 | 主持裁决 | 最后一位"主持"模型拿到匿名化的意见、分歧与交叉质询摘要，输出 `decision/confidence/rationale/dissent/unresolved/reversalTriggers/actions`；存在分歧却无 dissent 会被要求重写 |
 | 异议留档 | 裁决必含 `dissent / unresolved / reversalTriggers / actions`；报告单列"异议（不抹平）"与"推翻条件" |
 | 证据门槛 | 每条 claim 必须带 `evidence`；无证据的意见降级为假设，工具返回 `evidenceWarnings`，报告按领域证据标准核对 |
-| 鲁棒性 | 每次调用有超时、重试、JSON 契约与一次修复重试；主持输出截断时先从文本抢救结论，再退回按意见统计的**降级裁决**（报告显式标注需人工复核）；推理模型"无可见输出"会自动加预算重试 |
+| 鲁棒性 | 每次调用有超时、重试、JSON 契约与一次修复重试；主持输出截断时先从文本抢救结论，再退回按意见统计的**降级裁决**（报告显式标注需人工复核）；推理模型"无可见输出"会自动加预算重试；`QUORUM_FAILED` 等运行失败会写明 provider/model 与建议 |
 | 可观测 | 运行阶段（独立成稿→交叉质询→同行评议→主持裁决）、逐专家状态/耗时/token、法定人数、失败专家、超预算与降级警告；`run_status` 轮询、`cancel_run` 取消 |
 | 报告 | 8 节 Markdown 报告落盘 `runs/<runId>.md`：结论、专家意见表、分歧与交叉质询、异议、未决/推翻条件、行动项、领域交付物核对、运行明细；面板可查看/下载，`action=report` 可读 |
 | 任务会诊 | `intent=task`：每位专家交付完整可用的产出，总集成者合并成一份最终成果；报告含最终成果、分工、各专家交付物、假设与风险、下一步；合并失败自动拼接并标注复核 |
@@ -139,7 +139,8 @@ expert_council({action:'run', domain:'security', intent:'task', question:'给出
 
 - **只加载选中的镜头**：brief 只渲染本团专家卡。
 - **三档**：`lean`（一次主持综合调用，约 34% 预算）、`standard`（N 路独立 + 一轮交叉质询 + 主持）、`deep`（再加匿名同行评议，约 2.6×）。
-- **真实调用额度**：每位专家输出上限 ≥1200 token、主持 ≥3500 token（推理模型的思考 token 也计入），避免推理烧完额度没有可见输出。
+- **真实调用额度**：每位专家输出上限 ≥1200 token（推理路由抬到 ≥2400，交叉质询 ≥1800）、主持 ≥3500 token（推理模型的思考 token 也计入），避免推理烧完额度没有可见输出。
+- **路由与超时**：`run` 默认使用调用会话当前的 provider/model（取 `exec.agent.model.current()`，会话切模型后跟着切；取不到才回落 Harness 默认）。单次调用默认 90s，推理路由（`reasoningEffort` 存在且非 `off`）默认 180s，显式配置 `call_timeout_ms` / `callTimeoutMs` 优先；单槽自部署端点建议 `max_parallel:1` 串行执行。
 - **记账**：运行摘要记录实际 input/output/reasoning token、逐专家耗时与状态；超预算 20% 返回告警但不中断，报告会写出实际用量。
 - **可调**：`budget_cap` 覆盖总量（200–20000 token）；`max_parallel`（1–8）、`call_timeout_ms`、`wait_ms` 可调。
 - 默认建议：日常评审用 lean；重要但可逆用 standard；不可逆/高成本决策才升 deep。
@@ -164,10 +165,10 @@ pnpm --dir <profile> add link:F:\dsh插件创造\workspace\dsh-expert-council
 
 ```bash
 node --check index.js
-node --test "test/*.test.mjs"   # 58/58
+node --test "test/*.test.mjs"   # 76/76
 ```
 
-`test/run.test.mjs` 用脚本化假 LLM 覆盖真实编排：并行独立性、JSON 修复、法定人数、取消、主持强制异议修复、lean 单调用、报告落盘、工具链路、领域元数据、空文本重试、截断裁决抢救、降级裁决、领域字段持久化。
+`test/run.test.mjs` 用脚本化假 LLM 覆盖真实编排：并行独立性、JSON 修复、法定人数、取消、主持强制异议修复、lean 单调用、报告落盘、工具链路、领域元数据、空文本重试、截断裁决抢救、降级裁决、领域字段持久化。`test/routing.test.mjs` 覆盖会话路由优先级、reasoning/off 各阶段预算、调用超时选择与失败文案。
 
 ## 与 DSH 智能体团队的边界（详见 docs/BENCHMARK.md）
 
@@ -198,6 +199,7 @@ node --test "test/*.test.mjs"   # 58/58
 
 ## 版本
 
+- `0.5.2`：运行跟随会话模型路由（`exec.agent.model.current()`）、推理路由的专家/交叉质询/主持输出预算下限、按路由自适应的调用超时（90s/180s）、`QUORUM_FAILED` 附 provider/model 与建议。
 - `0.5.0`：任务会诊（并行交付 + 合并最终成果）、移除全部任务边界（全域无界）、镜头基线化、任务模式鲁棒性与报告。
 - `0.4.0`：真实会诊（Host 并行调用每位专家 + 交叉质询 + 主持裁决 + 8 节报告）、6 个专业领域评审团、运行进度/取消/降级、推理模型适配。
 - `0.3.0`：自然语言调整、自定义专家团队、界面分区。

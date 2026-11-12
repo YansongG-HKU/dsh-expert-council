@@ -3,6 +3,24 @@
 All notable changes to `dsh-expert-council` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.5.2] — 2026-11-12
+
+### Fixed
+
+- **路由跟会话**：`expert_council` 的 `run` 现在把调用 agent 的模型路由传给 service（`exec.agent.model.current()`，回落到 `session.requestHeader().config`）。`runtimeServices()` 优先级改为「显式 `options.selection` > agent 传入 selection > `agentDefaultModel.currentSelection()`」，用户在会话里切换模型后专家团不再回落到全局默认模型；无 agent 的旧调用方（命令、面板、测试）行为不变。
+- **推理预算下限**：生效路由的 `reasoningEffort` 存在且非 `off` 时，各阶段输出预算抬到下限——独立意见 2400、交叉质询 1800、主持 1800、lean 2400、任务产出 2400 / 任务合并 6000 token。推理 token 计入 `maxTokens`，此前 1200/1000 token 的专家预算容易被思考耗尽、返回空文本进而跌破法定人数。非推理路由与旧版逐值一致。
+- **调用超时自适应**：新增 `effectiveCallTimeout(callTimeoutMs, reasoningActive)`；未显式配置时推理路由 180s、非推理保持 90s，显式配置优先。该值进入每次模型调用与 run 快照（`snapshot.callTimeoutMs`）。
+- **失败可诊断**：`QUORUM_FAILED` 与其余 run 失败信息附带 `provider/model`、推理开关与建议（降低 reasoning effort / 单槽端点 `max_parallel:1` 串行），不再只给「请重试或换模型」。
+
+### Changed
+
+- `max_parallel` 默认仍为 4；工具参数说明、失败提示与 README 注明单槽自部署端点建议 `max_parallel:1`。
+- `service.runtime(options)` 现在接受参数（无参调用保持兼容）；run 快照新增 `reasoning` / `callTimeoutMs` 两个诊断字段。
+
+### Verified
+
+- `npm test` → **76/76**（新增 11 项 `test/routing.test.mjs`：selection 提取与三级优先级、真实运行跟随 agent 路由、reasoning/off 各阶段预算、lean 预算、任务产出/合并预算、超时选择与落盘、QUORUM_FAILED 文案含 provider/model）。
+
 ## [0.5.1] — 2026-11-10
 
 - 同一 Host 的会诊台账变更按顺序原子落盘，成功后才更新内存。写入失败会返回错误，损坏的旧账本保留供恢复。见 [#1](https://github.com/YansongG-HKU/dsh-expert-council/issues/1)。

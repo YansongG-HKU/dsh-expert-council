@@ -192,11 +192,14 @@ customization.json 写入 + history 记一条（谁、什么动作、原话、�
 
 ### 7.1 执行器（lib/executor.js）
 
-- 每位专家一次独立 `llm.prepareCall → stream` 调用，互不可见；`maxParallel` 默认 4。
+- 每位专家一次独立 `llm.prepareCall → stream` 调用，互不可见；`maxParallel` 默认 4（单槽自部署端点建议 1）。
+- 路由：`run` 使用调用 agent 的 selection（`exec.agent.model.current()`，回落到 `session.requestHeader().config`），service 优先级为「显式 `options.selection` > agent selection > `agentDefaultModel`」。
+- 推理路由（`reasoningEffort` 存在且非 `off`）抬高各阶段输出下限：独立意见 2400、交叉质询 1800、主持 1800、lean 2400、任务 2400 / 合并 6000 token；非推理路由与旧版一致。
+- 调用超时：未显式配置时推理路由 180s、非推理 90s；显式 `callTimeoutMs` 优先。该值进入每次模型调用与 `run.callTimeoutMs` 快照。
 - 仅当检测到 stance/confidence 分歧时，对最多 4 位涉及专家做交叉质询并写回第 2 轮修订。
 - `deep` 追加匿名同行评议（最多 4 位），再进入主持裁决。
 - 主持输出契约：`decision/confidence/rationale/dissent/unresolved/reversalTriggers/actions/artifactNotes`；存在分歧而 dissent 为空会触发一次强制修复。
-- 失败路径：单次调用超时/重试 → 专家记 failed；成功数低于法定人数（ceil(N/2)）则整轮失败并保留 open 状态；主持 JSON 不可解析 → 先抢救截断字段，再退回按意见统计的降级裁决（报告标注需人工复核）。
+- 失败路径：单次调用超时/重试 → 专家记 failed；成功数低于法定人数（ceil(N/2)）则整轮失败并保留 open 状态；`QUORUM_FAILED` 等运行失败信息附 `provider/model`、推理开关与建议（降低 effort / 单槽端点 `max_parallel:1`）；主持 JSON 不可解析 → 先抢救截断字段，再退回按意见统计的降级裁决（报告标注需人工复核）。
 - 推理模型适配：finish=max-tokens 且无可见文本时自动提高输出额度并降低推理强度重试一次。
 
 ### 7.2 领域包（lib/domains.js）
@@ -205,7 +208,7 @@ customization.json 写入 + history 记一条（谁、什么动作、原话、�
 
 ### 7.3 数据与接口
 
-- 台账 `consult.run` 额外保存 `provider/model/tokens/budget/durationMs/experts/failedExperts/expertStatuses/reportPath/error`。
+- 台账 `consult.run` 额外保存 `provider/model/tokens/budget/durationMs/experts/failedExperts/expertStatuses/reportPath/error`；run 转录另含 `reasoning/callTimeoutMs`。
 - `runs/<runId>.json` 完整转录；`runs/<runId>.md` 8 节报告。
 - 工具动作新增：`domains` / `run`（id 或 domain+question，`wait` 可 false）/ `run_status` / `cancel_run` / `report`。
 - 面板新增：`GET /expert-council/api/report?id=`（text/markdown）、`POST action=run|cancel-run`、state 返回 `domains` 与 `runtime{llmAvailable,activeRuns,config}`。
