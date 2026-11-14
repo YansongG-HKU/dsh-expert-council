@@ -1,6 +1,6 @@
 {
   "name": "dsh-expert-council",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "User-gated expert panels for DSH with no task boundaries: real parallel model calls per expert, review verdicts with dissent or task results merged into complete deliverables, professional lens baselines, durable Markdown reports, and a queryable ledger — never built-in Agent Teams.",
   "license": "MIT",
   "author": "YansongG-HKU",
@@ -65,7 +65,7 @@
   },
   "engines": {
     "node": ">=22",
-    "dsh": ">=0.2.2-rc.1"
+    "dsh": ">=0.2.2-rc.3"
   }
 }
 

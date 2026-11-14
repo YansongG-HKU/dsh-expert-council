@@ -10,7 +10,7 @@
 
 DeepSeek Harness 插件（MIT 开源）：https://github.com/YansongG-HKU/dsh-expert-council
 
-> **兼容性（DSH 0.2.2-rc.1）**：只读公开接口（tools / systemPrompt / commands / webServer / slots / locale / llm）并逐条核对，无破坏性变化；62/62 测试通过，真实桌面运行时完成过 5 专家 + 4 路交叉质询 + 主持裁决的完整金融会诊，以及任务会诊的并行交付 + 合并成果。
+> **兼容性（DSH 0.2.2-rc.3，2026-11-15 实测）**：只读公开接口（tools / systemPrompt / commands / webServer / slots / locale / llm）并逐条核对，无破坏性变化；62/62 测试通过，真实桌面运行时完成过 5 专家 + 4 路交叉质询 + 主持裁决的完整金融会诊，以及任务会诊的并行交付 + 合并成果。
 
 Host 拥有专家镜头名册与 6 个专业领域包、用户自定义层、合作规范、真实运行执行器（LLM 调用编排）、token 记账与决策台账；Client 提供侧边栏面板与详情页；模型侧有一个工具 `expert_council`，人类侧有一条命令 `/experts`。三者写同一份台账。
 
