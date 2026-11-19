@@ -3,6 +3,16 @@
 All notable changes to `dsh-expert-council` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.5.4] — 2026-11-19
+
+### Changed
+
+- Align with DeepSeek Harness 0.2.2-rc.5: `engines.dsh` raised to `>=0.2.2-rc.5`; the read-only public interfaces used by the plugin (tools / systemPrompt / commands / webServer / slots / locale / llm) are unchanged from 0.2.2-rc.3.
+
+### Verified
+
+- 76/76 tests pass; the `expert_council` tool, `/experts` command and sidebar panel register on the 0.2.2-rc.5 desktop runtime.
+
 ## [0.5.3] — 2026-11-15
 
 ### Changed
